@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/aradwann/eenergy/util"
-
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
