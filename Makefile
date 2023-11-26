@@ -25,7 +25,7 @@ migratedown1:
 	migrate -path $(MIGRATIONS_PATH) -database $(DB_SOURCE) -verbose down 1
 
 createmigration:
-	migrate create -ext sql -dir $(MIGRATIONS_PATH) -seq <migration_file_name>
+	migrate create -ext sql -dir $(MIGRATIONS_PATH) -seq "$(filter-out $@,$(MAKECMDGOALS))"
 
 createprocmigration:
 	migrate create -ext sql -dir $(PROCS_PATH) -seq <migration_file_name>

@@ -1,31 +1,33 @@
 package main
 
 import (
-	"context"
+	"database/sql"
 	"fmt"
 	"os"
 
 	"github.com/aradwann/eenergy/util"
-	"github.com/jackc/pgx/v5"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 func main() {
-	// urlExample := "postgres://username:password@localhost:5432/database_name"
-	config, _ := util.LoadConfig(".")
-	conn, err := pgx.Connect(context.Background(), config.DBSource)
+	config, err := util.LoadConfig(".")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error loading config: %v\n", err)
+		os.Exit(1)
+	}
+	db, err := sql.Open("pgx", config.DBSource)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 		os.Exit(1)
 	}
-	defer conn.Close(context.Background())
+	defer db.Close()
 
-	var name string
-	var weight int64
-	err = conn.QueryRow(context.Background(), "select name, weight from widgets where id=$1", 42).Scan(&name, &weight)
+	var greeting string
+	err = db.QueryRow("select 'Hello, world!'").Scan(&greeting)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Println(name, weight)
+	fmt.Println(greeting)
 }
