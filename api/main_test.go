@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	db "github.com/aradwann/eenergy/db/sqlc"
+	db "github.com/aradwann/eenergy/db/entities"
 	"github.com/aradwann/eenergy/util"
 
 	"github.com/gin-gonic/gin"

@@ -3,7 +3,7 @@ package api
 import (
 	"fmt"
 
-	db "github.com/aradwann/eenergy/db/sqlc"
+	db "github.com/aradwann/eenergy/db/entities"
 	"github.com/aradwann/eenergy/token"
 	"github.com/aradwann/eenergy/util"
 
@@ -43,13 +43,7 @@ func (server *Server) setupRouter() {
 	router.POST("/users/login", server.loginUser)
 	router.POST("/tokens/renew_access", server.renewAccessToken)
 
-	authRoutes := router.Group("/").Use(authMiddleware(server.tokenMaker))
-
-	authRoutes.POST("/accounts", server.createAccount)
-	authRoutes.GET("/accounts", server.listAccount)
-	authRoutes.GET("/accounts/:id", server.getAccount)
-
-	authRoutes.POST("/transfers", server.createTransfer)
+	// authRoutes := router.Group("/").Use(authMiddleware(server.tokenMaker))
 
 	server.router = router
 }
