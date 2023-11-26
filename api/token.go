@@ -1,8 +1,6 @@
 package api
 
 import (
-	"database/sql"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -31,39 +29,39 @@ func (server *Server) renewAccessToken(ctx *gin.Context) {
 		return
 	}
 
-	session, err := server.store.GetSession(ctx, refreshPayload.ID)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			ctx.JSON(http.StatusNotFound, errResponse(err))
-			return
-		}
-		ctx.JSON(http.StatusInternalServerError, errResponse(err))
-		return
-	}
+	// session, err := server.store.GetSession(ctx, refreshPayload.ID)
+	// if err != nil {
+	// 	if err == sql.ErrNoRows {
+	// 		ctx.JSON(http.StatusNotFound, errResponse(err))
+	// 		return
+	// 	}
+	// 	ctx.JSON(http.StatusInternalServerError, errResponse(err))
+	// 	return
+	// }
 
-	if session.IsBlocked {
-		err := fmt.Errorf("blocked session")
-		ctx.JSON(http.StatusUnauthorized, errResponse(err))
-		return
-	}
+	// if session.IsBlocked {
+	// 	err := fmt.Errorf("blocked session")
+	// 	ctx.JSON(http.StatusUnauthorized, errResponse(err))
+	// 	return
+	// }
 
-	if session.Username != refreshPayload.Username {
-		err := fmt.Errorf("incorrect session user")
-		ctx.JSON(http.StatusUnauthorized, errResponse(err))
-		return
-	}
+	// if session.Username != refreshPayload.Username {
+	// 	err := fmt.Errorf("incorrect session user")
+	// 	ctx.JSON(http.StatusUnauthorized, errResponse(err))
+	// 	return
+	// }
 
-	if session.RefreshToken != req.RefreshToken {
-		err := fmt.Errorf("mismatch session token")
-		ctx.JSON(http.StatusUnauthorized, errResponse(err))
-		return
-	}
+	// if session.RefreshToken != req.RefreshToken {
+	// 	err := fmt.Errorf("mismatch session token")
+	// 	ctx.JSON(http.StatusUnauthorized, errResponse(err))
+	// 	return
+	// }
 
-	if time.Now().After(session.ExpiresAt) {
-		err := fmt.Errorf("expired session")
-		ctx.JSON(http.StatusUnauthorized, errResponse(err))
-		return
-	}
+	// if time.Now().After(session.ExpiresAt) {
+	// 	err := fmt.Errorf("expired session")
+	// 	ctx.JSON(http.StatusUnauthorized, errResponse(err))
+	// 	return
+	// }
 
 	accessToken, accessPayload, err := server.tokenMaker.CreateToken(refreshPayload.Username, server.config.AccessTokenDuration)
 	if err != nil {

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	db "github.com/aradwann/eenergy/db/entities"
+	db "github.com/aradwann/eenergy/db/store"
 	"github.com/aradwann/eenergy/util"
 	"github.com/jackc/pgx/v5/pgconn"
 
@@ -125,22 +125,22 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 
-	session, err := server.store.CreateSession(ctx, db.CreateSessionParams{
-		ID:           refreshPayload.ID,
-		Username:     user.Username,
-		RefreshToken: refreshToken,
-		UserAgent:    ctx.Request.UserAgent(),
-		ClientIp:     ctx.ClientIP(),
-		IsBlocked:    false,
-		ExpiresAt:    refreshPayload.ExpiredAt,
-	})
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errResponse(err))
-		return
-	}
+	// session, err := server.store.CreateSession(ctx, db.CreateSessionParams{
+	// 	ID:           refreshPayload.ID,
+	// 	Username:     user.Username,
+	// 	RefreshToken: refreshToken,
+	// 	UserAgent:    ctx.Request.UserAgent(),
+	// 	ClientIp:     ctx.ClientIP(),
+	// 	IsBlocked:    false,
+	// 	ExpiresAt:    refreshPayload.ExpiredAt,
+	// })
+	// if err != nil {
+	// 	ctx.JSON(http.StatusInternalServerError, errResponse(err))
+	// 	return
+	// }
 
 	rsp := loginUserResponse{
-		SessionID:             session.ID,
+		// SessionID:             session.ID,
 		AccessToken:           accessToken,
 		AccessTokenExpiresAt:  accessPayload.ExpiredAt,
 		RefreshToken:          refreshToken,

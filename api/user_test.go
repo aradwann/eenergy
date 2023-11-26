@@ -3,7 +3,7 @@ package api
 import (
 	"testing"
 
-	db "github.com/aradwann/eenergy/db/entities"
+	db "github.com/aradwann/eenergy/db/store"
 	"github.com/aradwann/eenergy/util"
 	"github.com/stretchr/testify/require"
 )
