@@ -1,0 +1,2 @@
+-- Drop update_user stored procedure
+DROP FUNCTION IF EXISTS update_user(VARCHAR, VARCHAR,TIMESTAMP WITH TIME ZONE, VARCHAR, VARCHAR);

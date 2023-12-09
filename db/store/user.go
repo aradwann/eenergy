@@ -20,7 +20,6 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		arg.Fullname,
 		arg.Email)
 	if err != nil {
-
 		return User{}, err
 	}
 	err = row.Scan(
@@ -34,17 +33,13 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
-const getUser = `-- name: GetUser :one
-SELECT username, hashed_password, fullname, email, password_changed_at, created_at
-FROM users
-WHERE username = $1
-LIMIT 1
-`
-
 func (q *Queries) GetUser(ctx context.Context, username string) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUser, username)
+	row, err := q.callStoredFunction(ctx, "get_user", username)
+	if err != nil {
+		return User{}, err
+	}
 	var i User
-	err := row.Scan(
+	err = row.Scan(
 		&i.Username,
 		&i.HashedPassword,
 		&i.Fullname,
@@ -55,18 +50,6 @@ func (q *Queries) GetUser(ctx context.Context, username string) (User, error) {
 	return i, err
 }
 
-const updateUser = `-- name: UpdateUser :one
-UPDATE users 
-SET
-  hashed_password = COALESCE($1, hashed_password),
-  password_changed_at = COALESCE($2, password_changed_at),
-  fullname = COALESCE($3, fullname),
-  email =COALESCE($4, email)
-WHERE 
-  username = $5
-RETURNING username, hashed_password, fullname, email, password_changed_at, created_at
-`
-
 type UpdateUserParams struct {
 	HashedPassword    sql.NullString `json:"hashed_password"`
 	PasswordChangedAt sql.NullTime   `json:"password_changed_at"`
@@ -76,15 +59,17 @@ type UpdateUserParams struct {
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, updateUser,
+	row, err := q.callStoredFunction(ctx, "update_user",
+		arg.Username,
 		arg.HashedPassword,
 		arg.PasswordChangedAt,
 		arg.Fullname,
-		arg.Email,
-		arg.Username,
-	)
+		arg.Email)
+	if err != nil {
+		return User{}, err
+	}
 	var i User
-	err := row.Scan(
+	err = row.Scan(
 		&i.Username,
 		&i.HashedPassword,
 		&i.Fullname,
