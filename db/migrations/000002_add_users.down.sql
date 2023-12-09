@@ -1,7 +1,7 @@
 ALTER TABLE
 IF EXISTS "accounts"
 DROP CONSTRAINT
-IF EXISTS "owner_currency_key";
+IF EXISTS "owner_unit_key";
 
 ALTER TABLE
 IF EXISTS "accounts"

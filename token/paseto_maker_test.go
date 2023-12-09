@@ -50,3 +50,11 @@ func TestExpiredPASETOToken(t *testing.T) {
 	require.Nil(t, payload)
 
 }
+
+func TestPASETOMakerInvalidKeySize(t *testing.T) {
+	symmetricKey := "shortKey" // Invalid key size
+
+	_, err := NewPASETOMaker(symmetricKey)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid key size")
+}

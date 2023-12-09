@@ -6,7 +6,7 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-var validCurrency validator.Func = func(fl validator.FieldLevel) bool {
+var validUnit validator.Func = func(fl validator.FieldLevel) bool {
 	if unit, ok := fl.Field().Interface().(string); ok {
 		// check if unit is supported
 		return util.IsSupportedUnit(unit)
