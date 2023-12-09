@@ -16,7 +16,7 @@ var testDB *sql.DB
 func TestMain(m *testing.M) {
 
 	var err error
-	config, err := util.LoadConfig("../..")
+	config, err := util.LoadConfig("../..", "app")
 	if err != nil {
 		log.Fatal("cannot laod config:", err)
 	}
