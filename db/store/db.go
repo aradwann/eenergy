@@ -3,6 +3,8 @@ package db
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"strings"
 )
 
 type DBTX interface {
@@ -18,4 +20,16 @@ func New(db DBTX) *Queries {
 
 type Queries struct {
 	db DBTX
+}
+
+// callStoredFunction executes a stored function with parameters.
+func (q *Queries) callStoredFunction(ctx context.Context, functionName string, params ...interface{}) (*sql.Row, error) {
+	placeholders := make([]string, len(params))
+	for i := range placeholders {
+		placeholders[i] = fmt.Sprintf("$%d", i+1)
+	}
+
+	sqlStatement := fmt.Sprintf(`SELECT * FROM %s(%s)`, functionName, strings.Join(placeholders, ", "))
+
+	return q.db.QueryRowContext(ctx, sqlStatement, params...), nil
 }

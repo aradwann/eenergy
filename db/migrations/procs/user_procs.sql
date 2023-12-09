@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION CreateUser(
+CREATE OR REPLACE FUNCTION create_user(
     p_username VARCHAR,
     p_hashed_password VARCHAR,
     p_fullname VARCHAR,
@@ -8,14 +8,18 @@ RETURNS TABLE (
     username VARCHAR,
     hashed_password VARCHAR,
     fullname VARCHAR,
-    email VARCHAR
+    email VARCHAR,
+    password_changed_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE
 ) AS $$
 BEGIN
+    RETURN QUERY
     INSERT INTO users (username, hashed_password, fullname, email)
     VALUES (p_username, p_hashed_password, p_fullname, p_email)
     RETURNING *;
 END;
 $$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION GetUser(
     p_username VARCHAR

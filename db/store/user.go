@@ -5,21 +5,6 @@ import (
 	"database/sql"
 )
 
-const createUser = `-- name: CreateUser :one
-INSERT INTO users
-  (
-  username,
-  hashed_password,
-  fullname,
-  email
-  )
-VALUES
-  (
-    $1, $2, $3, $4
-)
-RETURNING username, hashed_password, fullname, email, password_changed_at, created_at
-`
-
 type CreateUserParams struct {
 	Username       string `json:"username"`
 	HashedPassword string `json:"hashed_password"`
@@ -28,14 +13,17 @@ type CreateUserParams struct {
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser,
+	var i User
+	row, err := q.callStoredFunction(ctx, "create_user",
 		arg.Username,
 		arg.HashedPassword,
 		arg.Fullname,
-		arg.Email,
-	)
-	var i User
-	err := row.Scan(
+		arg.Email)
+	if err != nil {
+
+		return User{}, err
+	}
+	err = row.Scan(
 		&i.Username,
 		&i.HashedPassword,
 		&i.Fullname,
