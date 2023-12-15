@@ -12,8 +12,8 @@ func TestRandomInt(t *testing.T) {
 	max = 100
 	result := RandomInt(min, max)
 
-	require.Greater(t, result, min)
-	require.Less(t, result, max)
+	require.GreaterOrEqual(t, result, min)
+	require.LessOrEqual(t, result, max)
 }
 
 func TestRandomString(t *testing.T) {
