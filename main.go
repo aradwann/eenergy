@@ -4,6 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"path/filepath"
+	"sort"
+	"strings"
 
 	"github.com/aradwann/eenergy/util"
 	"github.com/golang-migrate/migrate/v4"
@@ -27,6 +30,7 @@ func main() {
 
 	runDBMigrations(db, config.MigrationsURL)
 
+	// test connection
 	var greeting string
 	err = db.QueryRow("select 'Hello, world!'").Scan(&greeting)
 	if err != nil {
@@ -61,4 +65,52 @@ func runDBMigrations(db *sql.DB, migrationsURL string) {
 	// log.Info().Msg("DB migrated successfully")
 	fmt.Println("DB migrated successfully")
 
+	// Run unversioned migrations
+	err = runUnversionedMigrations(db, "./db/migrations/procs")
+	if err != nil {
+		fmt.Println("Error applying unversioned migrations:", err)
+		os.Exit(1)
+	}
+
+	fmt.Println("Unversioned migrations applied successfully")
+
+}
+
+func runUnversionedMigrations(db *sql.DB, migrationDir string) error {
+	// Get a list of SQL files in the migration directory
+	files, err := filepath.Glob(filepath.Join(migrationDir, "*.sql"))
+	if err != nil {
+		return err
+	}
+
+	// Sort files to ensure execution order
+	// Note: You may need a custom sorting logic if file names include version numbers
+	// For simplicity, we assume alphabetical order here.
+	// Sorting ensures that the files are executed in the correct order.
+	sortFiles(files)
+
+	// Execute each SQL file
+	for _, file := range files {
+		contents, err := os.ReadFile(file)
+		if err != nil {
+			return err
+		}
+
+		// Execute the SQL content
+		_, err = db.Exec(string(contents))
+		if err != nil {
+			return fmt.Errorf("error executing SQL file %s: %w", file, err)
+		}
+
+		fmt.Printf("Executed migration: %s\n", file)
+	}
+
+	return nil
+}
+
+// Simple alphabetical sorting function
+func sortFiles(files []string) {
+	sort.Slice(files, func(i, j int) bool {
+		return strings.Compare(files[i], files[j]) < 0
+	})
 }
