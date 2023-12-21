@@ -59,13 +59,14 @@ func TestUpdateUserOnlyFullName(t *testing.T) {
 	oldUser := createRandomUser(t)
 
 	newFullName := util.RandomOwner()
-	testQueries.UpdateUser(context.Background(), UpdateUserParams{
+	_, err := testQueries.UpdateUser(context.Background(), UpdateUserParams{
 		Username: oldUser.Username,
 		Fullname: sql.NullString{
 			String: newFullName,
 			Valid:  true,
 		},
 	})
+	require.NoError(t, err)
 
 	updatedUser, err := testQueries.GetUser(context.Background(), oldUser.Username)
 	require.NoError(t, err)
@@ -81,13 +82,14 @@ func TestUpdateUserOnlyEmail(t *testing.T) {
 	oldUser := createRandomUser(t)
 
 	newEmail := util.RandomEmail()
-	testQueries.UpdateUser(context.Background(), UpdateUserParams{
+	_, err := testQueries.UpdateUser(context.Background(), UpdateUserParams{
 		Username: oldUser.Username,
 		Email: sql.NullString{
 			String: newEmail,
 			Valid:  true,
 		},
 	})
+	require.NoError(t, err)
 
 	updatedUser, err := testQueries.GetUser(context.Background(), oldUser.Username)
 	require.NoError(t, err)
@@ -106,13 +108,14 @@ func TestUpdateUserOnlyPassword(t *testing.T) {
 	newHashedPassword, err := util.HashPassword(newPassword)
 	require.NoError(t, err)
 
-	testQueries.UpdateUser(context.Background(), UpdateUserParams{
+	_, err = testQueries.UpdateUser(context.Background(), UpdateUserParams{
 		Username: oldUser.Username,
 		HashedPassword: sql.NullString{
 			String: newHashedPassword,
 			Valid:  true,
 		},
 	})
+	require.NoError(t, err)
 
 	updatedUser, err := testQueries.GetUser(context.Background(), oldUser.Username)
 	require.NoError(t, err)
@@ -134,7 +137,7 @@ func TestUpdateUserAllFields(t *testing.T) {
 	newHashedPassword, err := util.HashPassword(newPassword)
 	require.NoError(t, err)
 
-	testQueries.UpdateUser(context.Background(), UpdateUserParams{
+	_, err = testQueries.UpdateUser(context.Background(), UpdateUserParams{
 		Username: oldUser.Username,
 		HashedPassword: sql.NullString{
 			String: newHashedPassword,
@@ -149,6 +152,7 @@ func TestUpdateUserAllFields(t *testing.T) {
 			Valid:  true,
 		},
 	})
+	require.NoError(t, err)
 
 	updatedUser, err := testQueries.GetUser(context.Background(), oldUser.Username)
 	require.NoError(t, err)

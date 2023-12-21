@@ -87,6 +87,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 	interf := []interface{}{
 		arg.Username,
 		arg.HashedPassword,
+		arg.PasswordChangedAt,
 		arg.Fullname,
 		arg.Email,
 		&user.Username,
