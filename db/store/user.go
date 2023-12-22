@@ -3,6 +3,8 @@ package db
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"log"
 )
 
 type CreateUserParams struct {
@@ -10,68 +12,6 @@ type CreateUserParams struct {
 	HashedPassword string `json:"hashed_password"`
 	Fullname       string `json:"fullname"`
 	Email          string `json:"email"`
-}
-
-// CreateUser calls the create_user stored procedure
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	var user User
-	interf := []interface{}{
-		arg.Username,
-		arg.HashedPassword,
-		arg.Fullname,
-		arg.Email,
-		&user.Username,
-		&user.HashedPassword,
-		&user.Fullname,
-		&user.Email,
-		&user.PasswordChangedAt,
-		&user.CreatedAt,
-	}
-	row, err := q.callStoredProcedure(ctx, "create_user", interf...)
-	if err != nil {
-		return User{}, err
-	}
-	// Execute the stored procedure and scan the results into the variables
-	err = row.Scan(
-		&user.Username,
-		&user.HashedPassword,
-		&user.Fullname,
-		&user.Email,
-		&user.PasswordChangedAt,
-		&user.CreatedAt,
-	)
-
-	if err != nil {
-		return User{}, err
-	}
-
-	return user, nil
-}
-
-func (q *Queries) GetUser(ctx context.Context, username string) (User, error) {
-	var user User
-	interf := []interface{}{
-		username,
-		&user.Username,
-		&user.HashedPassword,
-		&user.Fullname,
-		&user.Email,
-		&user.PasswordChangedAt,
-		&user.CreatedAt,
-	}
-	row, err := q.callStoredProcedure(ctx, "get_user", interf...)
-	if err != nil {
-		return User{}, err
-	}
-	err = row.Scan(
-		&user.Username,
-		&user.HashedPassword,
-		&user.Fullname,
-		&user.Email,
-		&user.PasswordChangedAt,
-		&user.CreatedAt,
-	)
-	return user, err
 }
 
 type UpdateUserParams struct {
@@ -82,27 +22,45 @@ type UpdateUserParams struct {
 	Username          string         `json:"username"`
 }
 
-func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
-	var user User
-	interf := []interface{}{
-		arg.Username,
-		arg.HashedPassword,
-		arg.PasswordChangedAt,
-		arg.Fullname,
-		arg.Email,
-		&user.Username,
-		&user.HashedPassword,
-		&user.Fullname,
-		&user.Email,
-		&user.PasswordChangedAt,
-		&user.CreatedAt,
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (*User, error) {
+	user := User{}
+	params := StoredProcedureParams{
+		InParams:  []interface{}{arg.Username, arg.HashedPassword, arg.Fullname, arg.Email, &user.PasswordChangedAt, &user.CreatedAt},
+		OutParams: []interface{}{&user.Username, &user.HashedPassword, &user.Fullname, &user.Email, &user.PasswordChangedAt, &user.CreatedAt},
 	}
-	row, err := q.callStoredProcedure(ctx, "update_user", interf...)
-	if err != nil {
-		return User{}, err
+
+	row := q.callStoredProcedure(ctx, "create_user", params)
+	err := scanUserFromRow(row, &user)
+	return &user, err
+}
+
+func (q *Queries) GetUser(ctx context.Context, username string) (*User, error) {
+	user := User{}
+	params := StoredProcedureParams{
+		InParams:  []interface{}{username, &user.Username, &user.HashedPassword, &user.Fullname, &user.Email, &user.PasswordChangedAt, &user.CreatedAt},
+		OutParams: []interface{}{&user.Username, &user.HashedPassword, &user.Fullname, &user.Email, &user.PasswordChangedAt, &user.CreatedAt},
 	}
-	// Execute the stored procedure and scan the results into the variables
-	err = row.Scan(
+
+	row := q.callStoredProcedure(ctx, "get_user", params)
+	err := scanUserFromRow(row, &user)
+	return &user, err
+}
+
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (*User, error) {
+	user := User{}
+	params := StoredProcedureParams{
+		InParams:  []interface{}{arg.Username, arg.HashedPassword, arg.PasswordChangedAt, arg.Fullname, arg.Email, &user.Username, &user.HashedPassword, &user.Fullname, &user.Email, &user.PasswordChangedAt, &user.CreatedAt},
+		OutParams: []interface{}{&user.Username, &user.HashedPassword, &user.Fullname, &user.Email, &user.PasswordChangedAt, &user.CreatedAt},
+	}
+
+	row := q.callStoredProcedure(ctx, "update_user", params)
+	err := scanUserFromRow(row, &user)
+	return &user, err
+}
+
+func scanUserFromRow(row *sql.Row, user *User) error {
+
+	err := row.Scan(
 		&user.Username,
 		&user.HashedPassword,
 		&user.Fullname,
@@ -110,10 +68,23 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&user.PasswordChangedAt,
 		&user.CreatedAt,
 	)
-
+	// Check for errors after scanning
+	if err := row.Err(); err != nil {
+		// Handle row-related errors
+		log.Fatal(err)
+		return err
+	}
 	if err != nil {
-		return User{}, err
+		// Check for a specific error related to the scan
+		if err == sql.ErrNoRows {
+			fmt.Println("No rows were returned.")
+			return err
+		} else {
+			// Handle other scan-related errors
+			log.Fatal(err)
+			return err
+		}
 	}
 
-	return user, nil
+	return nil
 }

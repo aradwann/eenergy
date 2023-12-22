@@ -38,7 +38,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Run migrations
-      run: go run db/scripts/migrate.go
+      run: make migrateup
 
     - name: Run Unit tests
       run: make testci 

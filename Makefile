@@ -10,7 +10,7 @@ dropdb:
 	docker exec -it postgres15 dropdb eenergy
 
 migrateup:
-	migrate -path $(MIGRATIONS_PATH) -database $(DB_SOURCE) -verbose up
+	go run db/scripts/migrate.go
 
 migrateprocsup:
 	migrate -path $(PROCS_PATH) -database $(DB_SOURCE) -verbose up
@@ -26,12 +26,6 @@ migratedown1:
 
 createmigration:
 	migrate create -ext sql -dir $(MIGRATIONS_PATH) -seq "$(filter-out $@,$(MAKECMDGOALS))"
-
-createprocmigration:
-	migrate create -ext sql -dir $(PROCS_PATH) -seq <migration_file_name>
-
-sqlc:
-	sqlc generate
 
 test: 
 	go test -v -cover ./...
@@ -57,5 +51,5 @@ protoc:
 evans:
 	evans --host localhost --port 9090 -r repl
 
-.PHONEY: postgres pgadmin4 createdb dropdb migrateup migrateup1 migratedown migratedown1 sqlc test server mock protoc evans migrateprocsup
+.PHONEY: createdb dropdb migrateup migrateup1 migratedown migratedown1  test server  protoc evans migrateprocsup
 

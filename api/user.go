@@ -71,7 +71,7 @@ func (server *Server) createUser(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, errResponse(err))
 		return
 	}
-	rsp := newUserResponse(user)
+	rsp := newUserResponse(*user)
 	ctx.JSON(http.StatusOK, rsp)
 
 }
@@ -145,7 +145,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		AccessTokenExpiresAt:  accessPayload.ExpiredAt,
 		RefreshToken:          refreshToken,
 		RefreshTokenExpiresAt: refreshPayload.ExpiredAt,
-		User:                  newUserResponse(user),
+		User:                  newUserResponse(*user),
 	}
 	ctx.JSON(http.StatusOK, rsp)
 }

@@ -22,17 +22,25 @@ type Queries struct {
 	db DBTX
 }
 
-// callStoredProcedure executes a stored procedure with parameters.
-func (q *Queries) callStoredProcedure(ctx context.Context, procedureName string, params ...interface{}) (*sql.Row, error) {
-	// Construct placeholders for the parameters
-	placeholders := make([]string, len(params))
-	for i := range placeholders {
-		placeholders[i] = fmt.Sprintf("$%d", i+1)
+type StoredProcedureParams struct {
+	InParams  []interface{}
+	OutParams []interface{}
+}
+
+func (q *Queries) callStoredProcedure(ctx context.Context, procedureName string, params StoredProcedureParams) *sql.Row {
+	sqlStatement := fmt.Sprintf(`CALL %s(%s)`, procedureName, generateParamPlaceholders(len(params.InParams)))
+
+	return q.db.QueryRowContext(
+		ctx,
+		sqlStatement,
+		params.InParams...,
+	)
+}
+
+func generateParamPlaceholders(count int) string {
+	placeholders := make([]string, count)
+	for i := 1; i <= count; i++ {
+		placeholders[i-1] = fmt.Sprintf("$%d", i)
 	}
-
-	// Construct the SQL statement for calling the stored procedure
-	sqlStatement := fmt.Sprintf(`CALL %s(%s)`, procedureName, strings.Join(placeholders, ", "))
-
-	// Execute the stored procedure and return the result
-	return q.db.QueryRowContext(ctx, sqlStatement, params...), nil
+	return strings.Join(placeholders, ", ")
 }

@@ -35,5 +35,9 @@ BEGIN
         email_out,
         password_changed_at_out,
         created_at_out;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'User not found with username: %', p_username;
+    END IF;
 END;
 $$;
