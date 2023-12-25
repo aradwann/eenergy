@@ -9,6 +9,9 @@ createdb:
 dropdb:
 	docker exec -it postgres15 dropdb eenergy
 
+mock:
+	mockgen -package mockdb -destination db/mock/store.go github.com/aradwann/eenergy/db/store Store
+
 migrateup:
 	go run db/scripts/migrate.go
 

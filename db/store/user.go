@@ -10,52 +10,52 @@ import (
 type CreateUserParams struct {
 	Username       string `json:"username"`
 	HashedPassword string `json:"hashed_password"`
-	Fullname       string `json:"fullname"`
+	FullName       string `json:"fullname"`
 	Email          string `json:"email"`
 }
 
 type UpdateUserParams struct {
 	HashedPassword    sql.NullString `json:"hashed_password"`
 	PasswordChangedAt sql.NullTime   `json:"password_changed_at"`
-	Fullname          sql.NullString `json:"fullname"`
+	FullName          sql.NullString `json:"fullname"`
 	Email             sql.NullString `json:"email"`
 	Username          string         `json:"username"`
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (*User, error) {
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
 	user := User{}
 	params := StoredProcedureParams{
-		InParams:  []interface{}{arg.Username, arg.HashedPassword, arg.Fullname, arg.Email, &user.PasswordChangedAt, &user.CreatedAt},
-		OutParams: []interface{}{&user.Username, &user.HashedPassword, &user.Fullname, &user.Email, &user.PasswordChangedAt, &user.CreatedAt},
+		InParams:  []interface{}{arg.Username, arg.HashedPassword, arg.FullName, arg.Email, &user.PasswordChangedAt, &user.CreatedAt},
+		OutParams: []interface{}{&user.Username, &user.HashedPassword, &user.FullName, &user.Email, &user.PasswordChangedAt, &user.CreatedAt},
 	}
 
 	row := q.callStoredProcedure(ctx, "create_user", params)
 	err := scanUserFromRow(row, &user)
-	return &user, err
+	return user, err
 }
 
-func (q *Queries) GetUser(ctx context.Context, username string) (*User, error) {
+func (q *Queries) GetUser(ctx context.Context, username string) (User, error) {
 	user := User{}
 	params := StoredProcedureParams{
-		InParams:  []interface{}{username, &user.Username, &user.HashedPassword, &user.Fullname, &user.Email, &user.PasswordChangedAt, &user.CreatedAt},
-		OutParams: []interface{}{&user.Username, &user.HashedPassword, &user.Fullname, &user.Email, &user.PasswordChangedAt, &user.CreatedAt},
+		InParams:  []interface{}{username, &user.Username, &user.HashedPassword, &user.FullName, &user.Email, &user.PasswordChangedAt, &user.CreatedAt},
+		OutParams: []interface{}{&user.Username, &user.HashedPassword, &user.FullName, &user.Email, &user.PasswordChangedAt, &user.CreatedAt},
 	}
 
 	row := q.callStoredProcedure(ctx, "get_user", params)
 	err := scanUserFromRow(row, &user)
-	return &user, err
+	return user, err
 }
 
-func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (*User, error) {
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
 	user := User{}
 	params := StoredProcedureParams{
-		InParams:  []interface{}{arg.Username, arg.HashedPassword, arg.PasswordChangedAt, arg.Fullname, arg.Email, &user.Username, &user.HashedPassword, &user.Fullname, &user.Email, &user.PasswordChangedAt, &user.CreatedAt},
-		OutParams: []interface{}{&user.Username, &user.HashedPassword, &user.Fullname, &user.Email, &user.PasswordChangedAt, &user.CreatedAt},
+		InParams:  []interface{}{arg.Username, arg.HashedPassword, arg.PasswordChangedAt, arg.FullName, arg.Email, &user.Username, &user.HashedPassword, &user.FullName, &user.Email, &user.PasswordChangedAt, &user.CreatedAt},
+		OutParams: []interface{}{&user.Username, &user.HashedPassword, &user.FullName, &user.Email, &user.PasswordChangedAt, &user.CreatedAt},
 	}
 
 	row := q.callStoredProcedure(ctx, "update_user", params)
 	err := scanUserFromRow(row, &user)
-	return &user, err
+	return user, err
 }
 
 func scanUserFromRow(row *sql.Row, user *User) error {
@@ -63,7 +63,7 @@ func scanUserFromRow(row *sql.Row, user *User) error {
 	err := row.Scan(
 		&user.Username,
 		&user.HashedPassword,
-		&user.Fullname,
+		&user.FullName,
 		&user.Email,
 		&user.PasswordChangedAt,
 		&user.CreatedAt,
