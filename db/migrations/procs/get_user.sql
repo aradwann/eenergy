@@ -1,3 +1,4 @@
+DROP PROCEDURE IF EXISTS get_user;
 CREATE OR REPLACE PROCEDURE get_user(
     IN p_username VARCHAR,
     OUT username_out VARCHAR,

@@ -1,3 +1,4 @@
+DROP PROCEDURE IF EXISTS update_user;
 CREATE OR REPLACE PROCEDURE update_user(
     p_username VARCHAR,
     p_hashed_password VARCHAR,

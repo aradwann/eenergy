@@ -77,8 +77,6 @@ func TestCreateUserAPI(t *testing.T) {
 			},
 			checkResponse: func(recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, recorder.Code)
-				fmt.Printf("gotttt body %#v", recorder.Body.String())
-				fmt.Printf("user %#v", recorder.Body.String())
 				requireBodyMatchUser(t, recorder.Body, user)
 			},
 		},
@@ -176,7 +174,6 @@ func TestCreateUserAPI(t *testing.T) {
 
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
 
 			store := mockdb.NewMockStore(ctrl)
 			tc.buildStubs(store)

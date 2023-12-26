@@ -1,3 +1,4 @@
+DROP PROCEDURE IF EXISTS create_user;
 CREATE OR REPLACE PROCEDURE create_user(
     INOUT p_username VARCHAR,
     INOUT p_hashed_password VARCHAR,
