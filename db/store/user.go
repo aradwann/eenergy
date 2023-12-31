@@ -14,6 +14,31 @@ type CreateUserParams struct {
 	Email          string `json:"email"`
 }
 
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	var user User
+	row := q.callStoredFunction(ctx, "create_user",
+		arg.Username,
+		arg.HashedPassword,
+		arg.FullName,
+		arg.Email)
+
+	err := scanUserFromRow(row, &user)
+	if err != nil {
+		return user, err
+	}
+	return user, nil
+}
+
+func (q *Queries) GetUser(ctx context.Context, username string) (User, error) {
+	var user User
+	row := q.callStoredFunction(ctx, "get_user", username)
+	err := scanUserFromRow(row, &user)
+	if err != nil {
+		return user, err
+	}
+	return user, nil
+}
+
 type UpdateUserParams struct {
 	HashedPassword    sql.NullString `json:"hashed_password"`
 	PasswordChangedAt sql.NullTime   `json:"password_changed_at"`
@@ -22,40 +47,24 @@ type UpdateUserParams struct {
 	Username          string         `json:"username"`
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	user := User{}
-	params := StoredProcedureParams{
-		InParams:  []interface{}{arg.Username, arg.HashedPassword, arg.FullName, arg.Email, &user.PasswordChangedAt, &user.CreatedAt},
-		OutParams: []interface{}{&user.Username, &user.HashedPassword, &user.FullName, &user.Email, &user.PasswordChangedAt, &user.CreatedAt},
-	}
-
-	row := q.callStoredProcedure(ctx, "create_user", params)
-	err := scanUserFromRow(row, &user)
-	return user, err
-}
-
-func (q *Queries) GetUser(ctx context.Context, username string) (User, error) {
-	user := User{}
-	params := StoredProcedureParams{
-		InParams:  []interface{}{username, &user.Username, &user.HashedPassword, &user.FullName, &user.Email, &user.PasswordChangedAt, &user.CreatedAt},
-		OutParams: []interface{}{&user.Username, &user.HashedPassword, &user.FullName, &user.Email, &user.PasswordChangedAt, &user.CreatedAt},
-	}
-
-	row := q.callStoredProcedure(ctx, "get_user", params)
-	err := scanUserFromRow(row, &user)
-	return user, err
-}
-
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
-	user := User{}
-	params := StoredProcedureParams{
-		InParams:  []interface{}{arg.Username, arg.HashedPassword, arg.PasswordChangedAt, arg.FullName, arg.Email, &user.Username, &user.HashedPassword, &user.FullName, &user.Email, &user.PasswordChangedAt, &user.CreatedAt},
-		OutParams: []interface{}{&user.Username, &user.HashedPassword, &user.FullName, &user.Email, &user.PasswordChangedAt, &user.CreatedAt},
+	var user User
+	params := []interface{}{
+		arg.Username,
+		arg.HashedPassword,
+		arg.PasswordChangedAt,
+		arg.FullName,
+		arg.Email,
+	}
+	row := q.callStoredFunction(ctx, "update_user", params...)
+
+	// Execute the stored procedure and scan the results into the variables
+	err := scanUserFromRow(row, &user)
+	if err != nil {
+		return User{}, err
 	}
 
-	row := q.callStoredProcedure(ctx, "update_user", params)
-	err := scanUserFromRow(row, &user)
-	return user, err
+	return user, nil
 }
 
 func scanUserFromRow(row *sql.Row, user *User) error {

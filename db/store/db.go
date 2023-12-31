@@ -22,19 +22,28 @@ type Queries struct {
 	db DBTX
 }
 
-type StoredProcedureParams struct {
-	InParams  []interface{}
-	OutParams []interface{}
-}
+// type storedProcedureParams struct {
+// 	InParams  []interface{}
+// 	OutParams []interface{}
+// }
 
-func (q *Queries) callStoredProcedure(ctx context.Context, procedureName string, params StoredProcedureParams) *sql.Row {
-	sqlStatement := fmt.Sprintf(`CALL %s(%s)`, procedureName, generateParamPlaceholders(len(params.InParams)))
+// func (q *Queries) callStoredProcedure(ctx context.Context, procedureName string, params storedProcedureParams) *sql.Row {
+// 	sqlStatement := fmt.Sprintf(`CALL %s(%s)`, procedureName, generateParamPlaceholders(len(params.InParams)))
 
-	return q.db.QueryRowContext(
-		ctx,
-		sqlStatement,
-		params.InParams...,
-	)
+//		return q.db.QueryRowContext(
+//			ctx,
+//			sqlStatement,
+//			params.InParams...,
+//		)
+//	}
+func (q *Queries) callStoredFunction(ctx context.Context, functionName string, params ...interface{}) *sql.Row {
+	// Assuming generateParamPlaceholders generates the placeholders for parameters
+	placeholders := generateParamPlaceholders(len(params))
+
+	// Use SELECT statement to call the stored function
+	sqlStatement := fmt.Sprintf(`SELECT * FROM %s(%s)`, functionName, placeholders)
+
+	return q.db.QueryRowContext(ctx, sqlStatement, params...)
 }
 
 func generateParamPlaceholders(count int) string {

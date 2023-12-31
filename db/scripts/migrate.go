@@ -67,21 +67,50 @@ func runDBMigrations(db *sql.DB, migrationsURL string) {
 
 }
 
+// Get a list of SQL files in the migration directory
+func getSQLFiles(migrationDir string) ([]string, error) {
+	var sqlFiles []string
+
+	err := filepath.WalkDir(migrationDir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Skip directories
+		if d.IsDir() {
+			return nil
+		}
+
+		// Check if the file has a .sql extension
+		if strings.HasSuffix(path, ".sql") {
+			if err != nil {
+				return err
+			}
+			sqlFiles = append(sqlFiles, path)
+		}
+
+		return nil
+	})
+
+	return sqlFiles, err
+}
+
 func runUnversionedMigrations(db *sql.DB, migrationDir string) error {
-	// Get a list of SQL files in the migration directory
-	files, err := filepath.Glob(filepath.Join(migrationDir, "*.sql"))
+
+	sqlFiles, err := getSQLFiles(migrationDir)
+
 	if err != nil {
 		return err
 	}
-
 	// Sort files to ensure execution order
 	// Note: You may need a custom sorting logic if file names include version numbers
 	// For simplicity, we assume alphabetical order here.
 	// Sorting ensures that the files are executed in the correct order.
-	sortFiles(files)
+	sortFiles(sqlFiles)
 
 	// Execute each SQL file
-	for _, file := range files {
+	for _, file := range sqlFiles {
+
 		contents, err := os.ReadFile(file)
 		if err != nil {
 			return err
