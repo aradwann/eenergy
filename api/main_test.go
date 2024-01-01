@@ -12,10 +12,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// newTestServer create a test server with a config suitable for testing
 func newTestServer(t *testing.T, store db.Store) *Server {
 	config := util.Config{
-		TokenSymmetricKey:   util.RandomString(32),
-		AccessTokenDuration: time.Minute,
+		TokenSymmetricKey:    util.RandomString(32),
+		AccessTokenDuration:  time.Minute,
+		RefreshTokenDuration: time.Minute,
 	}
 	server, err := NewServer(config, store)
 	require.NoError(t, err)
