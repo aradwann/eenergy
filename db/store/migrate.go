@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -85,7 +84,7 @@ func runUnversionedMigrations(db *sql.DB, migrationDir string) error {
 	// Note: You may need a custom sorting logic if file names include version numbers
 	// For simplicity, we assume alphabetical order here.
 	// Sorting ensures that the files are executed in the correct order.
-	sortFiles(sqlFiles)
+	// sortFiles(sqlFiles)
 
 	// Execute each SQL file
 	for _, file := range sqlFiles {
@@ -108,8 +107,8 @@ func runUnversionedMigrations(db *sql.DB, migrationDir string) error {
 }
 
 // Simple alphabetical sorting function
-func sortFiles(files []string) {
-	sort.Slice(files, func(i, j int) bool {
-		return strings.Compare(files[i], files[j]) < 0
-	})
-}
+// func sortFiles(files []string) {
+// 	sort.Slice(files, func(i, j int) bool {
+// 		return strings.Compare(files[i], files[j]) < 0
+// 	})
+// }

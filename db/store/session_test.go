@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 	"time"
 
@@ -59,4 +60,10 @@ func TestGetSession(t *testing.T) {
 
 	require.WithinDuration(t, session1.CreatedAt, session2.CreatedAt, time.Second)
 	require.WithinDuration(t, session1.ExpiresAt, session2.ExpiresAt, time.Second)
+}
+func TestGetSessionNotFound(t *testing.T) {
+	session, err := testQueries.GetSession(context.Background(), uuid.New())
+	require.Equal(t, session, Session{})
+
+	require.ErrorIs(t, err, sql.ErrNoRows)
 }
