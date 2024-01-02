@@ -39,7 +39,6 @@ testci:
 server:
 	go run main.go
 
-
 protoc: 
 	rm -f pb/*.go
 	protoc --proto_path=proto --go_out=pb --go_opt=paths=source_relative \
