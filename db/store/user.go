@@ -68,7 +68,6 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 }
 
 func scanUserFromRow(row *sql.Row, user *User) error {
-
 	err := row.Scan(
 		&user.Username,
 		&user.HashedPassword,
@@ -77,20 +76,16 @@ func scanUserFromRow(row *sql.Row, user *User) error {
 		&user.PasswordChangedAt,
 		&user.CreatedAt,
 	)
+
 	// Check for errors after scanning
-	if err := row.Err(); err != nil {
-		// Handle row-related errors
-		log.Fatal(err)
-		return err
-	}
 	if err != nil {
-		// Check for a specific error related to the scan
+		// Handle scan-related errors
 		if err == sql.ErrNoRows {
 			fmt.Println("No rows were returned.")
 			return err
 		} else {
-			// Handle other scan-related errors
-			log.Fatal(err)
+			// Log and return other scan-related errors
+			log.Printf("Error scanning row: %s", err)
 			return err
 		}
 	}
