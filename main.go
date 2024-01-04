@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"embed"
 	"fmt"
 	"log"
 	"net"
@@ -10,19 +11,20 @@ import (
 	"os"
 
 	db "github.com/aradwann/eenergy/db/store"
-	_ "github.com/aradwann/eenergy/doc/statik"
 	"github.com/aradwann/eenergy/gapi"
 	"github.com/aradwann/eenergy/pb"
 	"github.com/aradwann/eenergy/util"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	_ "github.com/jackc/pgx/v5/stdlib"
-	"github.com/rakyll/statik/fs"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
 )
+
+//go:embed doc/swagger/*
+var content embed.FS
 
 func main() {
 	config, err := util.LoadConfig(".", "app")
@@ -95,14 +97,10 @@ func runGatewayServer(config util.Config, store db.Store) {
 	}
 
 	mux := http.NewServeMux()
+	// Handle gRPC requests
 	mux.Handle("/", grpcMux)
-
-	statikFs, err := fs.New()
-	if err != nil {
-		log.Fatalf("cannot create statik fs: %s", err)
-	}
-	swaggerHandler := http.StripPrefix("/swagger/", http.FileServer(statikFs))
-	mux.Handle("/swagger/", swaggerHandler)
+	// TODO: fix serving URL
+	mux.Handle("/swagger/", http.FileServer(http.FS(content)))
 
 	listener, err := net.Listen("tcp", config.HTTPServerAddress)
 	if err != nil {
