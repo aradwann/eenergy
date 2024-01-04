@@ -12,5 +12,4 @@ var validUnit validator.Func = func(fl validator.FieldLevel) bool {
 		return util.IsSupportedUnit(unit)
 	}
 	return false
-
 }
