@@ -14,8 +14,10 @@ import (
 	"github.com/aradwann/eenergy/gapi"
 	"github.com/aradwann/eenergy/pb"
 	"github.com/aradwann/eenergy/util"
+	"github.com/aradwann/eenergy/worker"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/hibiken/asynq"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -42,8 +44,13 @@ func main() {
 
 	store := db.NewStore(dbConn)
 
-	go runGatewayServer(config, store)
-	runGrpcServer(config, store)
+	redisOpts := asynq.RedisClientOpt{
+		Addr: config.RedisAddress,
+	}
+	taskDistributor := worker.NewRedisTaskDistributor(redisOpts)
+	go runTaskProcessor(redisOpts, store)
+	go runGatewayServer(config, store, taskDistributor)
+	runGrpcServer(config, store, taskDistributor)
 }
 
 func initLogger(config util.Config) *slog.Logger {
@@ -72,8 +79,8 @@ func runDBMigrations(dbConn *sql.DB, migrationsURL string) {
 	db.RunDBMigrations(dbConn, migrationsURL)
 }
 
-func runGrpcServer(config util.Config, store db.Store) {
-	server, err := gapi.NewServer(config, store)
+func runGrpcServer(config util.Config, store db.Store, taskDistributor worker.TaskDistributor) {
+	server, err := gapi.NewServer(config, store, taskDistributor)
 	if err != nil {
 		handleError("cannot create gRPC server", err)
 	}
@@ -95,8 +102,8 @@ func runGrpcServer(config util.Config, store db.Store) {
 	}
 }
 
-func runGatewayServer(config util.Config, store db.Store) {
-	server, err := gapi.NewServer(config, store)
+func runGatewayServer(config util.Config, store db.Store, taskDistributor worker.TaskDistributor) {
+	server, err := gapi.NewServer(config, store, taskDistributor)
 	if err != nil {
 		handleError("cannot create HTTP gateway server", err)
 	}
@@ -133,6 +140,16 @@ func runGatewayServer(config util.Config, store db.Store) {
 	if err != nil {
 		handleError("cannot start HTTP gateway server", err)
 	}
+}
+
+func runTaskProcessor(redisOpts asynq.RedisClientOpt, store db.Store) {
+	taskProcessor := worker.NewRedisTaskProcessor(redisOpts, store)
+	slog.Info("start task processor")
+	err := taskProcessor.Start()
+	if err != nil {
+		handleError("failed to start task processor", err)
+	}
+
 }
 
 func handleError(message string, err error) {
