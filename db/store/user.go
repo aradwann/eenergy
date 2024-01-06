@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"log"
 )
 
@@ -81,7 +80,7 @@ func scanUserFromRow(row *sql.Row, user *User) error {
 	if err != nil {
 		// Handle scan-related errors
 		if err == sql.ErrNoRows {
-			fmt.Println("No rows were returned.")
+			// fmt.Println("No rows were returned.")
 			return err
 		} else {
 			// Log and return other scan-related errors

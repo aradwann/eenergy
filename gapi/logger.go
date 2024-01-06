@@ -3,6 +3,7 @@ package gapi
 import (
 	"context"
 	"log/slog"
+	"net/http"
 	"time"
 
 	"google.golang.org/grpc"
@@ -37,4 +38,54 @@ func GrpcLogger(ctx context.Context, req any, info *grpc.UnaryServerInfo, handle
 	)
 
 	return res, err
+}
+
+func HttpLogger(handler http.Handler) http.Handler {
+
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		startTime := time.Now()
+		rec := &ResponseRecorder{
+			ResponseWriter: res,
+			StatusCode:     http.StatusOK,
+		}
+		handler.ServeHTTP(rec, req)
+		duration := time.Since(startTime)
+
+		logLevel := slog.LevelInfo
+		var errForLog slog.Attr
+		if rec.StatusCode != http.StatusOK {
+			logLevel = slog.LevelError
+			errForLog = slog.String("body", string(rec.Body))
+		}
+
+		slog.LogAttrs(context.Background(),
+			logLevel,
+			"received http req",
+			slog.String("protocol", "http"),
+			slog.String("method", req.Method),
+			slog.String("method", req.RequestURI),
+			slog.Int("status_code", rec.StatusCode),
+			slog.String("status_text", http.StatusText(rec.StatusCode)),
+			errForLog,
+			slog.Duration("duration", duration),
+		)
+
+	})
+}
+
+// ResponseRecorder to get the status code from the original response writer
+type ResponseRecorder struct {
+	http.ResponseWriter
+	StatusCode int
+	Body       []byte
+}
+
+func (rec *ResponseRecorder) WriteHeader(statusCode int) {
+	rec.StatusCode = statusCode
+	rec.ResponseWriter.WriteHeader(statusCode)
+}
+
+func (rec *ResponseRecorder) Write(body []byte) (int, error) {
+	rec.Body = body
+	return rec.ResponseWriter.Write(body)
 }
