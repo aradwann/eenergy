@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"log/slog"
+
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/pgx"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -18,33 +20,33 @@ func RunDBMigrations(db *sql.DB, migrationsURL string) {
 	driver, err := pgx.WithInstance(db, &pgx.Config{})
 	if err != nil {
 		// log.Fatal().Msg("cannot create postgres driver")
-		fmt.Printf("cannot create postgres driver %s", err)
+		slog.Error("cannot create postgres driver %s", err)
 	}
 	migration, err := migrate.NewWithDatabaseInstance(
 		migrationsURL,
 		"eenergy", driver)
 	if err != nil {
 		// log.Fatal().Msg("cannot create new migrate instance")
-		fmt.Printf("cannot create new migrate instance %s", err)
+		slog.Error("cannot create new migrate instance %s", err)
 	}
 	migration.Up()
 	if err = migration.Up(); err != nil && err != migrate.ErrNoChange {
 		// log.Fatal().Msg("failed to run migrate up")
-		fmt.Printf("failed to run migrate up %s", err)
+		slog.Error("failed to run migrate up %s", err)
 
 	}
 
 	// log.Info().Msg("DB migrated successfully")
-	fmt.Println("DB migrated successfully")
+	slog.Info("DB migrated successfully")
 
 	// Run unversioned migrations
 	err = runUnversionedMigrations(db, "./db/migrations/procs")
 	if err != nil {
-		fmt.Println("Error applying unversioned migrations:", err)
+		slog.Error("Error applying unversioned migrations:", err)
 		os.Exit(1)
 	}
 
-	fmt.Println("Unversioned migrations applied successfully")
+	slog.Info("Unversioned migrations applied successfully")
 
 }
 
@@ -100,7 +102,6 @@ func runUnversionedMigrations(db *sql.DB, migrationDir string) error {
 			return fmt.Errorf("error executing SQL file %s: %w", file, err)
 		}
 
-		fmt.Printf("Executed migration: %s\n", file)
 	}
 
 	return nil

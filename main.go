@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"embed"
 	"fmt"
-	"log"
+	"log/slog"
 	"net"
 	"net/http"
 	"os"
@@ -27,19 +27,39 @@ import (
 var content embed.FS
 
 func main() {
+
 	config, err := util.LoadConfig(".", "app")
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error loading config: %v\n", err)
+		slog.Error("error loading config: %v\n", err)
 		os.Exit(1)
 	}
 
-	// if config.Environment == "development" {
-	// 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	// }
+	var logHandler slog.Handler
+	if config.Environment == "development" {
+		// use simple text output for development
+		logHandler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+			AddSource: false,
+			Level:     nil,
+			ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+				// Remove time.
+				if a.Key == slog.TimeKey && len(groups) == 0 {
+					return slog.Attr{}
+				}
+				return a
+			},
+		})
+	} else {
+		// use JSON Log Handler for production
+		logHandler = slog.NewJSONHandler(os.Stdout, nil)
+
+	}
+	logger := slog.New(logHandler)
+
+	slog.SetDefault(logger)
 
 	dbConn, err := sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+		slog.Error("Unable to connect to database: %v\n", err)
 		os.Exit(1)
 	}
 	defer dbConn.Close()
@@ -54,23 +74,24 @@ func main() {
 func runGrpcServer(config util.Config, store db.Store) {
 	server, err := gapi.NewServer(config, store)
 	if err != nil {
-		log.Fatalf("cannot create server: %s", err)
+		slog.Error("cannot create server: %s", err)
 	}
 
+	grpcLogger := grpc.UnaryInterceptor(gapi.GrpcLogger)
 	// gprcLogger := grpc.UnaryInterceptor(gapi.GrpcLogger)
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(grpcLogger)
 	pb.RegisterEenergyServiceServer(grpcServer, server)
 	reflection.Register(grpcServer)
 
 	listener, err := net.Listen("tcp", config.GRPCServerAddress)
 	if err != nil {
-		log.Fatalf("cannot create listener: %s", err)
+		slog.Error("cannot create listener: %s", err)
 	}
 
-	log.Printf("start gRPC server at %s", listener.Addr().String())
+	slog.Info(fmt.Sprintf("start gRPC server at %s", listener.Addr().String()))
 	err = grpcServer.Serve(listener)
 	if err != nil {
-		log.Fatalf("cannot start gRPC server: %s", err)
+		slog.Error("cannot start gRPC server: %s", err)
 	}
 }
 
@@ -78,7 +99,7 @@ func runGrpcServer(config util.Config, store db.Store) {
 func runGatewayServer(config util.Config, store db.Store) {
 	server, err := gapi.NewServer(config, store)
 	if err != nil {
-		log.Fatalf("cannot create server: %s", err)
+		slog.Error("cannot create server: %s", err)
 	}
 	jsonOpts := runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
 		MarshalOptions: protojson.MarshalOptions{
@@ -93,7 +114,7 @@ func runGatewayServer(config util.Config, store db.Store) {
 	defer cancel()
 	err = pb.RegisterEenergyServiceHandlerServer(ctx, grpcMux, server)
 	if err != nil {
-		log.Fatalf("cannot register handler server: %s", err)
+		slog.Error("cannot register handler server: %s", err)
 	}
 
 	mux := http.NewServeMux()
@@ -104,12 +125,12 @@ func runGatewayServer(config util.Config, store db.Store) {
 
 	listener, err := net.Listen("tcp", config.HTTPServerAddress)
 	if err != nil {
-		log.Fatalf("cannot create listener: %s", err)
+		slog.Error("cannot create listener: %s", err)
 	}
 
-	log.Printf("start HTTP gateway server at %s", listener.Addr().String())
+	slog.Info(fmt.Sprintf("start HTTP gateway server at %s", listener.Addr().String()))
 	err = http.Serve(listener, mux)
 	if err != nil {
-		log.Fatalf("cannot start http gateway server: %s", err)
+		slog.Error("cannot start http gateway server: %s", err)
 	}
 }
