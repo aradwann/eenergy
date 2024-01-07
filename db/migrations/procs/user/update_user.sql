@@ -12,7 +12,8 @@ RETURNS TABLE (
     fullname VARCHAR,
     email VARCHAR,
     password_changed_at TIMESTAMP WITH TIME ZONE,
-    created_at TIMESTAMP WITH TIME ZONE
+    created_at TIMESTAMP WITH TIME ZONE,
+    is_email_verfied BOOLEAN
 ) AS $$
 BEGIN
     RETURN QUERY

@@ -12,6 +12,7 @@ import (
 
 	db "github.com/aradwann/eenergy/db/store"
 	"github.com/aradwann/eenergy/gapi"
+	"github.com/aradwann/eenergy/mail"
 	"github.com/aradwann/eenergy/pb"
 	"github.com/aradwann/eenergy/util"
 	"github.com/aradwann/eenergy/worker"
@@ -43,12 +44,11 @@ func main() {
 	runDBMigrations(dbConn, config.MigrationsURL)
 
 	store := db.NewStore(dbConn)
-
 	redisOpts := asynq.RedisClientOpt{
 		Addr: config.RedisAddress,
 	}
 	taskDistributor := worker.NewRedisTaskDistributor(redisOpts)
-	go runTaskProcessor(redisOpts, store)
+	go runTaskProcessor(config, redisOpts, store)
 	go runGatewayServer(config, store, taskDistributor)
 	runGrpcServer(config, store, taskDistributor)
 }
@@ -142,8 +142,10 @@ func runGatewayServer(config util.Config, store db.Store, taskDistributor worker
 	}
 }
 
-func runTaskProcessor(redisOpts asynq.RedisClientOpt, store db.Store) {
-	taskProcessor := worker.NewRedisTaskProcessor(redisOpts, store)
+func runTaskProcessor(config util.Config, redisOpts asynq.RedisClientOpt, store db.Store) {
+	mailer := mail.NewGmailSender(config.EmailSenderName, config.EmailSenderAddress, config.EmailSenderPassword)
+
+	taskProcessor := worker.NewRedisTaskProcessor(redisOpts, store, mailer)
 	slog.Info("start task processor")
 	err := taskProcessor.Start()
 	if err != nil {

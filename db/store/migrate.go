@@ -19,7 +19,6 @@ func RunDBMigrations(db *sql.DB, migrationsURL string) {
 
 	driver, err := pgx.WithInstance(db, &pgx.Config{})
 	if err != nil {
-		// log.Fatal().Msg("cannot create postgres driver")
 		slog.Error("cannot create postgres driver %s", err)
 	}
 	migration, err := migrate.NewWithDatabaseInstance(
@@ -31,12 +30,10 @@ func RunDBMigrations(db *sql.DB, migrationsURL string) {
 	}
 	migration.Up()
 	if err = migration.Up(); err != nil && err != migrate.ErrNoChange {
-		// log.Fatal().Msg("failed to run migrate up")
 		slog.Error("failed to run migrate up %s", err)
 
 	}
 
-	// log.Info().Msg("DB migrated successfully")
 	slog.Info("DB migrated successfully")
 
 	// Run unversioned migrations

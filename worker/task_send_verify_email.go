@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log/slog"
 
+	db "github.com/aradwann/eenergy/db/store"
+	"github.com/aradwann/eenergy/util"
 	"github.com/hibiken/asynq"
 )
 
@@ -55,7 +57,25 @@ func (processor *RedisTaskProcessor) ProcessTaskSendVerifyEmail(ctx context.Cont
 		// }
 		return fmt.Errorf("failed to get user: %w", asynq.SkipRetry)
 	}
-	// TODO: send email to user
+	createVerifyEmailParams := db.CreateVerifyEmail{
+		Username:   user.Username,
+		Email:      user.Email,
+		SecretCode: util.RandomString(32),
+	}
+	verfiyEmail, err := processor.store.CreateVerifyEmail(ctx, createVerifyEmailParams)
+	if err != nil {
+		return fmt.Errorf("failed to create verify email instance: %w", err)
+	}
+	subject := "Welcome to Eennergy"
+	verifyURL := fmt.Sprintf("http://eenergy.io/verify_email?id=%d&secret_code=%s", verfiyEmail.ID, verfiyEmail.SecretCode)
+	content := fmt.Sprintf(`Hello %s, <br/>
+	Thank you for being a member in Eenergy community!</br>
+	Pleas click on <a href="%s">click here</a> to verify your email`, user.FullName, verifyURL)
+	to := []string{user.Email}
+	err = processor.mailer.SendEmail(subject, content, to, nil, nil, nil)
+	if err != nil {
+		return fmt.Errorf("failed to send verification email: %w", err)
+	}
 	slog.LogAttrs(context.Background(),
 		slog.LevelInfo,
 		"processed task",

@@ -8,7 +8,8 @@ RETURNS TABLE (
     fullname VARCHAR,
     email VARCHAR,
     password_changed_at TIMESTAMP WITH TIME ZONE,
-    created_at TIMESTAMP WITH TIME ZONE
+    created_at TIMESTAMP WITH TIME ZONE,
+    is_email_verified BOOLEAN
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -18,7 +19,8 @@ BEGIN
         users.fullname,
         users.email,
         users.password_changed_at,
-        users.created_at
+        users.created_at,
+        users.is_email_verified
     FROM users
     WHERE users.username = p_username
     LIMIT 1;
