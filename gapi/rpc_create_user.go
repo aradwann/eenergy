@@ -36,7 +36,7 @@ func (server *Server) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
 			taskPayload := &worker.PayloadSendVerifyEmail{Username: user.Username}
 			opts := []asynq.Option{
 				asynq.MaxRetry(10),
-				asynq.ProcessIn(10 * time.Second),
+				asynq.ProcessIn(10 * time.Second), // make room for the DB to commit the transaction before the task is picked up by the worker, otherwise the worker might not find the record
 				asynq.Queue(worker.QueueCritical),
 			}
 			return server.taskDistributor.DistributeTaskSendVerifyEmail(ctx, taskPayload, opts...)
