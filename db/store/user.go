@@ -44,6 +44,7 @@ type UpdateUserParams struct {
 	FullName          sql.NullString `json:"fullname"`
 	Email             sql.NullString `json:"email"`
 	Username          string         `json:"username"`
+	IsEmailVerified   sql.NullBool   `json:"is_email_verified"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
@@ -54,6 +55,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		arg.PasswordChangedAt,
 		arg.FullName,
 		arg.Email,
+		arg.IsEmailVerified,
 	}
 	row := q.callStoredFunction(ctx, "update_user", params...)
 

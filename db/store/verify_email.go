@@ -37,33 +37,27 @@ func (q *Queries) CreateVerifyEmail(ctx context.Context, arg CreateVerifyEmail) 
 // 	return user, nil
 // }
 
-// type UpdateUserParams struct {
-// 	HashedPassword    sql.NullString `json:"hashed_password"`
-// 	PasswordChangedAt sql.NullTime   `json:"password_changed_at"`
-// 	FullName          sql.NullString `json:"fullname"`
-// 	Email             sql.NullString `json:"email"`
-// 	Username          string         `json:"username"`
-// }
+type UpdatVerifyEmailParams struct {
+	ID         int64  `json:"ID"`
+	SecretCode string `json:"secret_code"`
+}
 
-// func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
-// 	var user User
-// 	params := []interface{}{
-// 		arg.Username,
-// 		arg.HashedPassword,
-// 		arg.PasswordChangedAt,
-// 		arg.FullName,
-// 		arg.Email,
-// 	}
-// 	row := q.callStoredFunction(ctx, "update_user", params...)
+func (q *Queries) UpdatVerifyEmail(ctx context.Context, arg UpdatVerifyEmailParams) (VerifyEmail, error) {
+	var verifyEmail VerifyEmail
+	params := []interface{}{
+		arg.ID,
+		arg.SecretCode,
+	}
+	row := q.callStoredFunction(ctx, "update_verify_email", params...)
 
-// 	// Execute the stored procedure and scan the results into the variables
-// 	err := scanUserFromRow(row, &user)
-// 	if err != nil {
-// 		return User{}, err
-// 	}
+	// Execute the stored procedure and scan the results into the variables
+	err := scanVerifyEmailFromRow(row, &verifyEmail)
+	if err != nil {
+		return verifyEmail, err
+	}
 
-// 	return user, nil
-// }
+	return verifyEmail, nil
+}
 
 func scanVerifyEmailFromRow(row *sql.Row, verifyEmail *VerifyEmail) error {
 	err := row.Scan(

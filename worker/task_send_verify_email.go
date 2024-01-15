@@ -67,7 +67,7 @@ func (processor *RedisTaskProcessor) ProcessTaskSendVerifyEmail(ctx context.Cont
 		return fmt.Errorf("failed to create verify email instance: %w", err)
 	}
 	subject := "Welcome to Eennergy"
-	verifyURL := fmt.Sprintf("http://eenergy.io/verify_email?id=%d&secret_code=%s", verfiyEmail.ID, verfiyEmail.SecretCode)
+	verifyURL := fmt.Sprintf("http://localhost:8080/v1/verify_email?email_id=%d&secret_code=%s", verfiyEmail.ID, verfiyEmail.SecretCode)
 	content := fmt.Sprintf(`Hello %s, <br/>
 	Thank you for being a member in Eenergy community!</br>
 	Pleas click on <a href="%s">click here</a> to verify your email`, user.FullName, verifyURL)
