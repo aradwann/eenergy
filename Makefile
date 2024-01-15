@@ -11,6 +11,7 @@ dropdb:
 
 mock:
 	mockgen -package mockdb -destination db/mock/store.go github.com/aradwann/eenergy/db/store Store
+	mockgen -package mockwk -destination worker/mock/distributor.go github.com/aradwann/eenergy/worker TaskDistributor
 
 migrateup:
 	go run db/scripts/migrate.go
