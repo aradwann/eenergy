@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 	"time"
 
@@ -65,5 +64,5 @@ func TestGetSessionNotFound(t *testing.T) {
 	session, err := testQueries.GetSession(context.Background(), uuid.New())
 	require.Equal(t, session, Session{})
 
-	require.ErrorIs(t, err, sql.ErrNoRows)
+	require.ErrorIs(t, err, ErrRecordNotFound)
 }

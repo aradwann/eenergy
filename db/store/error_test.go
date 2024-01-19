@@ -1,17 +1,17 @@
 package db
 
 import (
+	"database/sql"
 	"errors"
 	"testing"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestErrRecordNotFound(t *testing.T) {
 	err := ErrRecordNotFound
-	assert.True(t, pgx.ErrNoRows == err)
+	assert.True(t, sql.ErrNoRows == err)
 }
 
 func TestErrUniqueViolation(t *testing.T) {
