@@ -78,6 +78,7 @@ func scanUserFromRow(row *sql.Row, user *User) error {
 		&user.PasswordChangedAt,
 		&user.CreatedAt,
 		&user.IsEmailVerified,
+		&user.Role,
 	)
 
 	// Check for errors after scanning
