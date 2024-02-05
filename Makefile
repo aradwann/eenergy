@@ -1,7 +1,6 @@
 
 DB_SOURCE = "postgresql://root:secret@localhost:5432/eenergy?sslmode=disable"
 MIGRATIONS_PATH = db/migrations
-PROCS_PATH = db/procs
 
 createdb:
 	docker exec -it postgres15 createdb --username=root --owner=root eenergy
@@ -15,9 +14,6 @@ mock:
 
 migrateup:
 	go run db/scripts/migrate.go
-
-migrateprocsup:
-	migrate -path $(PROCS_PATH) -database $(DB_SOURCE) -verbose up
 
 migrateup1:
 	migrate -path $(MIGRATIONS_PATH) -database $(DB_SOURCE) -verbose up 1

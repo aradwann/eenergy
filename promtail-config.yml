@@ -1,0 +1,30 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+        # Use filters to narrow down the discovery to the specific container name
+        # filters:
+        #   - name: name
+        #     values: ["eenergy-api-1"] # Make sure this matches the exact container name
+  # TODO: rewrite conatiners filter
+    # relabel_configs:
+    #   # Correct the relabel_configs to ensure the target label correctly represents what you want to see in Loki
+    #   - source_labels: [__meta_docker_container_name]
+    #     regex: 'eenergy-api-1' # This ensures only the container named "eenergy-api-1" is processed
+    #     target_label: container_name # This sets the container name as a label for the log stream
+    #   # - source_labels: [__meta_docker_container_name]
+    #   #   target_label: job # Optionally, set the job label to something meaningful, like the container name or another identifier
+    relabel_configs:
+      - source_labels: [__meta_docker_container_name]
+        target_label: container_name
