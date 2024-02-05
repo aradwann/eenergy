@@ -29,8 +29,7 @@ BEGIN
         verify_emails.secret_code,
         verify_emails.is_used,
         verify_emails.created_at,
-        verify_emails.expired_at,
-        verify_emails.role;
+        verify_emails.expired_at;
 
 END;
 $$ LANGUAGE plpgsql;
