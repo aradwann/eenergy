@@ -45,13 +45,13 @@ To contribute to eEnergy, you will need to set up your development environment w
     - Build the Docker images:
 
       ```bash
-      docker-compose build
+      docker compose build
       ```
 
     - Run the containers:
 
       ```bash
-      docker-compose up
+      docker compose up
       ```
 
 4. **Access the Application**
