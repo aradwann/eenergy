@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:15-alpine
+    image: postgis/postgis:16-3.4-alpine
     environment:
       - POSTGRES_DB=eenergy
       - POSTGRES_USER=root
@@ -45,7 +45,7 @@ services:
         "/app/start.sh"
       ]
     command: [ "/app/main" ]
-  
+
   loki:
     image: grafana/loki:latest
     ports:
