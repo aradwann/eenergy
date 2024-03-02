@@ -185,7 +185,6 @@ func TestUpdateUserAPI(t *testing.T) {
 
 		t.Run(tc.name, func(t *testing.T) {
 			storeCtrl := gomock.NewController(t)
-			defer storeCtrl.Finish()
 			store := mockdb.NewMockStore(storeCtrl)
 
 			tc.buildStubs(store)
