@@ -56,7 +56,7 @@ func main() {
 func initLogger(config util.Config) *slog.Logger {
 	var logHandler slog.Handler
 
-	if config.Environment == "development" {
+	if config.Environment == "development" || config.Environment == "test" {
 		logHandler = gapi.NewDevelopmentLoggerHandler()
 	} else {
 		logHandler = gapi.NewProductionLoggerHandler()

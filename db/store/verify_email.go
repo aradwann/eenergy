@@ -28,16 +28,6 @@ func (q *Queries) CreateVerifyEmail(ctx context.Context, arg CreateVerifyEmail) 
 	return verifyEmail, nil
 }
 
-// func (q *Queries) GetUser(ctx context.Context, username string) (User, error) {
-// 	var user User
-// 	row := q.callStoredFunction(ctx, "get_user", username)
-// 	err := scanUserFromRow(row, &user)
-// 	if err != nil {
-// 		return user, err
-// 	}
-// 	return user, nil
-// }
-
 type UpdatVerifyEmailParams struct {
 	ID         int64  `json:"ID"`
 	SecretCode string `json:"secret_code"`
