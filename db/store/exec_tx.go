@@ -7,7 +7,7 @@ import (
 
 // ExecTx executes a function within a database transaction
 func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
-	tx, err := store.db.Begin()
+	tx, err := store.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
@@ -23,3 +23,7 @@ func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) erro
 
 	return tx.Commit()
 }
+
+// TransferTx performs a money/energy unit from account to the other
+// it create a new transfer record, add new account entries and update account balance in a single database transaction
+func (store *Store) TransferTx()
