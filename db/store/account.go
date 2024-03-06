@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 )
 
@@ -50,9 +51,21 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (A
 }
 
 func (q *Queries) DeleteAccount(ctx context.Context, id int64) error {
+	var result bool
+
 	row := q.callStoredFunction(ctx, "delete_account",
 		id,
 	)
+	err := row.Scan(&result)
+	// TODO: handle logging
+	if err != nil {
+		fmt.Printf("Failed to execute function: %v", err)
+	} else if result {
+		fmt.Println("Account deleted successfully.")
+	} else {
+		fmt.Println("No account was deleted.")
+	}
+
 	return row.Err()
 }
 
@@ -71,7 +84,7 @@ func (q *Queries) GetAccount(ctx context.Context, id int64) (Account, error) {
 }
 
 func (q *Queries) GetAccountForUpdate(ctx context.Context, id int64) (Account, error) {
-	row := q.db.QueryRow(ctx, getAccountForUpdate, id)
+	row := q.callStoredFunction(ctx, "get_account_for_update", id)
 	var i Account
 	err := row.Scan(
 		&i.ID,
@@ -126,7 +139,7 @@ type UpdateAccountParams struct {
 }
 
 func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) (Account, error) {
-	row := q.db.QueryRow(ctx, updateAccount, arg.ID, arg.Balance)
+	row := q.callStoredFunction(ctx, "update_account", arg.ID, arg.Balance)
 	var i Account
 	err := row.Scan(
 		&i.ID,
