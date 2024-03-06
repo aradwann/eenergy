@@ -20,10 +20,7 @@ func (q *Queries) AddAccountBalance(ctx context.Context, arg AddAccountBalancePa
 		arg.ID,
 	)
 
-	err := scanAccountFromRow(row, &acc)
-	if err != nil {
-		return acc, err
-	}
+	err := scanAccount(row, &acc)
 
 	return acc, err
 }
@@ -42,10 +39,7 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (A
 		arg.Unit,
 	)
 
-	err := scanAccountFromRow(row, &acc)
-	if err != nil {
-		return acc, err
-	}
+	err := scanAccount(row, &acc)
 
 	return acc, err
 }
@@ -75,25 +69,17 @@ func (q *Queries) GetAccount(ctx context.Context, id int64) (Account, error) {
 		id,
 	)
 
-	err := scanAccountFromRow(row, &acc)
-	if err != nil {
-		return acc, err
-	}
+	err := scanAccount(row, &acc)
 
 	return acc, err
 }
 
 func (q *Queries) GetAccountForUpdate(ctx context.Context, id int64) (Account, error) {
+	var acc Account
 	row := q.callStoredFunction(ctx, "get_account_for_update", id)
-	var i Account
-	err := row.Scan(
-		&i.ID,
-		&i.Owner,
-		&i.Balance,
-		&i.Unit,
-		&i.CreatedAt,
-	)
-	return i, err
+	err := scanAccount(row, &acc)
+
+	return acc, err
 }
 
 type ListAccountsParams struct {
@@ -103,28 +89,19 @@ type ListAccountsParams struct {
 }
 
 func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]Account, error) {
-
-	rows, err := q.callStoredFunctionRows(ctx, "list_accounts",
-		arg.Owner, arg.Limit, arg.Offset,
-	)
-
+	rows, err := q.callStoredFunctionRows(ctx, "list_accounts", arg.Owner, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []Account{}
+
+	var items []Account
 	for rows.Next() {
-		var i Account
-		if err := rows.Scan(
-			&i.ID,
-			&i.Owner,
-			&i.Balance,
-			&i.Unit,
-			&i.CreatedAt,
-		); err != nil {
+		var acc Account
+		if err := scanAccount(rows, &acc); err != nil {
 			return nil, err
 		}
-		items = append(items, i)
+		items = append(items, acc)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -140,38 +117,27 @@ type UpdateAccountParams struct {
 
 func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) (Account, error) {
 	row := q.callStoredFunction(ctx, "update_account", arg.ID, arg.Balance)
-	var i Account
-	err := row.Scan(
-		&i.ID,
-		&i.Owner,
-		&i.Balance,
-		&i.Unit,
-		&i.CreatedAt,
-	)
-	return i, err
+	var acc Account
+	if err := scanAccount(row, &acc); err != nil {
+		return Account{}, err
+	}
+	return acc, nil
 }
 
-func scanAccountFromRow(row *sql.Row, acc *Account) error {
-	err := row.Scan(
-		&acc.ID,
-		&acc.Owner,
-		&acc.Balance,
-		&acc.Unit,
-		&acc.CreatedAt,
-	)
-
-	// Check for errors after scanning
+// scanAccount abstracts the row scanning logic for an Account. Works with *sql.Row and *sql.Rows.
+func scanAccount(scanner interface {
+	Scan(dest ...interface{}) error
+}, acc *Account) error {
+	err := scanner.Scan(&acc.ID, &acc.Owner, &acc.Balance, &acc.Unit, &acc.CreatedAt)
 	if err != nil {
-		// Handle scan-related errors
-		if errors.Is(err, ErrRecordNotFound) {
-			// fmt.Println("No rows were returned.")
-			return err
-		} else {
-			// Log and return other scan-related errors
-			log.Printf("Error scanning row: %s", err)
-			return err
+		if errors.Is(err, sql.ErrNoRows) {
+			// Handle the case where no rows are found.
+			log.Println("No rows were returned.")
+			return ErrRecordNotFound
 		}
+		// Log and return other scan-related errors.
+		log.Printf("Error scanning row: %s", err)
+		return err
 	}
-
 	return nil
 }
