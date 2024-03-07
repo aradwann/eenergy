@@ -15,7 +15,7 @@ type AddAccountBalanceParams struct {
 
 func (q *Queries) AddAccountBalance(ctx context.Context, arg AddAccountBalanceParams) (Account, error) {
 	var acc Account
-	row := q.callStoredFunction(ctx, "add_account_balace",
+	row := q.callStoredFunction(ctx, "add_account_balance",
 		arg.Amount,
 		arg.ID,
 	)
@@ -69,14 +69,6 @@ func (q *Queries) GetAccount(ctx context.Context, id int64) (Account, error) {
 		id,
 	)
 
-	err := scanAccount(row, &acc)
-
-	return acc, err
-}
-
-func (q *Queries) GetAccountForUpdate(ctx context.Context, id int64) (Account, error) {
-	var acc Account
-	row := q.callStoredFunction(ctx, "get_account_for_update", id)
 	err := scanAccount(row, &acc)
 
 	return acc, err

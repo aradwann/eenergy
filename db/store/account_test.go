@@ -101,3 +101,22 @@ func TestListAccounts(t *testing.T) {
 		require.Equal(t, lastAccount.Owner, account.Owner)
 	}
 }
+
+func TestAddAccountBalance(t *testing.T) {
+	account1 := createRandomAccount(t)
+	amount := int64(10)
+	arg := AddAccountBalanceParams{
+		ID:     account1.ID,
+		Amount: amount,
+	}
+
+	updatedAccount, err := testStore.AddAccountBalance(context.Background(), arg)
+	require.NoError(t, err)
+	require.NotEmpty(t, updatedAccount)
+
+	require.Equal(t, account1.ID, updatedAccount.ID)
+	require.Equal(t, account1.Owner, updatedAccount.Owner)
+	require.Equal(t, account1.Balance+amount, updatedAccount.Balance)
+	require.Equal(t, account1.Unit, updatedAccount.Unit)
+	require.WithinDuration(t, account1.CreatedAt, updatedAccount.CreatedAt, time.Second)
+}
