@@ -2,6 +2,7 @@
 
 ![Go workflow](https://github.com/aradwann/eenergy/actions/workflows/test.yml/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/aradwann/eenergy/badge.svg?branch=main)](https://coveralls.io/github/aradwann/eenergy?branch=main)
+[![Go Report Card](https://goreportcard.com/badge/github.com/aradwann/eenergy)](https://goreportcard.com/report/github.com/aradwann/eenergy)
 
 eEnergy is a cutting-edge platform designed to revolutionize the way individuals and businesses exchange and source energy. By leveraging the power of renewable energy technology, eEnergy aims to empower households and energy producers to not only generate but also sell and exchange energy units efficiently. This platform facilitates users in finding the nearest energy providers or generators, making the transition to renewable energy sources seamless and convenient.
 

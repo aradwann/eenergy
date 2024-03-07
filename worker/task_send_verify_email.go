@@ -50,7 +50,7 @@ func (processor *RedisTaskProcessor) ProcessTaskSendVerifyEmail(ctx context.Cont
 
 	user, err := processor.store.GetUser(ctx, payload.Username)
 	if err != nil {
-		// if the user is not found try again later, as the creation might be not commited yet
+		// if the user is not found try again later, as the creation might be not committed yet
 		// if errors.Is(err, ErrRecordNotFound) {
 		// 	return fmt.Errorf("user doesn't exist: %w", asynq.SkipRetry)
 

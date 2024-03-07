@@ -1,3 +1,5 @@
+version: "3.8"  # Ensure you're using version 1.29 or above for health checks in depends_on
+
 services:
   postgres:
     image: postgis/postgis:16-3.4-alpine
@@ -9,6 +11,11 @@ services:
       - "5432:5432"
     volumes:
       - data-volume:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "root"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   pgadmin4:
     image: dpage/pgadmin4
@@ -22,6 +29,11 @@ services:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   api:
     build:
@@ -34,17 +46,11 @@ services:
       - DB_SOURCE=postgresql://root:secret@postgres:5432/eenergy?sslmode=disable
       - REDIS_ADDRESS=redis:6379
     depends_on:
-      - postgres
-      - redis
-    entrypoint: #TODO: find alternative way for wait-for.sh
-      [
-        "/app/wait-for.sh",
-        "postgres:5432",
-        "redis:6379",
-        "--",
-        "/app/start.sh"
-      ]
-    command: [ "/app/main" ]
+      postgres:  # Wait for postgres to start
+        condition: service_healthy  # Only start after postgres is healthy
+      redis:  # Wait for redis to start
+        condition: service_healthy  # Only start after redis is healthy
+    # Removed entrypoint section
 
   loki:
     image: grafana/loki:latest
