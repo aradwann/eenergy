@@ -21,10 +21,6 @@ func (q *Queries) CreateTransfer(ctx context.Context, arg CreateTransferParams) 
 		arg.Amount,
 	)
 	err := scanTransfer(row, &t)
-	if err != nil {
-		return t, err
-	}
-
 	return t, err
 }
 
@@ -32,13 +28,7 @@ func (q *Queries) GetTransfer(ctx context.Context, id int64) (Transfer, error) {
 	var t Transfer
 
 	row := q.callStoredFunction(ctx, "get_transfer", id)
-	err := row.Scan(
-		&t.ID,
-		&t.FromAccountID,
-		&t.ToAccountID,
-		&t.Amount,
-		&t.CreatedAt,
-	)
+	err := scanTransfer(row, &t)
 	return t, err
 }
 
