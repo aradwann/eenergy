@@ -21,7 +21,7 @@ var ErrUniqueViolation = &pgconn.PgError{
 
 func ErrorCode(err error) string {
 	var pgErr *pgconn.PgError
-	// TODO: handle err conversion
+	// TODO: handle err conversion & logging
 	fmt.Printf("errrrrr %#v", err)
 
 	if errors.As(err, &pgErr) {

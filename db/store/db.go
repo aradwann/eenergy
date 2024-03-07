@@ -46,6 +46,16 @@ func (q *Queries) callStoredFunction(ctx context.Context, functionName string, p
 	return q.db.QueryRowContext(ctx, sqlStatement, params...)
 }
 
+func (q *Queries) callStoredFunctionRows(ctx context.Context, functionName string, params ...interface{}) (*sql.Rows, error) {
+	// Assuming generateParamPlaceholders generates the placeholders for parameters
+	placeholders := generateParamPlaceholders(len(params))
+
+	// Use SELECT statement to call the stored function
+	sqlStatement := fmt.Sprintf(`SELECT * FROM %s(%s)`, functionName, placeholders)
+
+	return q.db.QueryContext(ctx, sqlStatement, params...)
+}
+
 func generateParamPlaceholders(count int) string {
 	placeholders := make([]string, count)
 	for i := 1; i <= count; i++ {

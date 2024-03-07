@@ -23,7 +23,7 @@ func createRandomSession(t *testing.T) Session {
 		ExpiresAt:    time.Time{},
 		CreatedAt:    time.Time{},
 	}
-	session, err := testQueries.CreateSession(context.Background(), arg)
+	session, err := testStore.CreateSession(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, user)
 
@@ -46,7 +46,7 @@ func TestCreateSession(t *testing.T) {
 
 func TestGetSession(t *testing.T) {
 	session1 := createRandomSession(t)
-	session2, err := testQueries.GetSession(context.Background(), session1.ID)
+	session2, err := testStore.GetSession(context.Background(), session1.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, session2)
 
@@ -61,7 +61,7 @@ func TestGetSession(t *testing.T) {
 	require.WithinDuration(t, session1.ExpiresAt, session2.ExpiresAt, time.Second)
 }
 func TestGetSessionNotFound(t *testing.T) {
-	session, err := testQueries.GetSession(context.Background(), uuid.New())
+	session, err := testStore.GetSession(context.Background(), uuid.New())
 	require.Equal(t, session, Session{})
 
 	require.ErrorIs(t, err, ErrRecordNotFound)

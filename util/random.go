@@ -10,7 +10,6 @@ import (
 const alphabet = "qwertyuioplkjhgfdsazxcvbnm"
 
 func init() {
-	// rand.Seed(time.Now().UnixNano()) // deprecated
 	rand.NewSource(time.Now().UnixNano())
 }
 
