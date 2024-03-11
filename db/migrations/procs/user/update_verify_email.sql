@@ -10,8 +10,7 @@ RETURNS TABLE (
     secret_code VARCHAR,
     is_used BOOLEAN,
     created_at TIMESTAMP WITH TIME ZONE,
-    expires_at_at TIMESTAMP WITH TIME ZONE,
-    role VARCHAR
+    expired_at TIMESTAMP WITH TIME ZONE
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -30,6 +29,5 @@ BEGIN
         verify_emails.is_used,
         verify_emails.created_at,
         verify_emails.expired_at;
-
 END;
 $$ LANGUAGE plpgsql;
