@@ -6,6 +6,7 @@ import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 import "rpc_create_user.proto";
 import "rpc_login_user.proto";
+import "rpc_transfer_energy.proto";
 import "rpc_update_user.proto";
 import "rpc_verify_email.proto";
 
@@ -25,7 +26,7 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 service EenergyService {
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {
     option (google.api.http) = {
-      post: "/v1/create_user"
+      post: "/v1/user"
       body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
@@ -35,7 +36,7 @@ service EenergyService {
   }
   rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse) {
     option (google.api.http) = {
-      patch: "/v1/update_user"
+      patch: "/v1/user"
       body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
@@ -45,7 +46,7 @@ service EenergyService {
   }
   rpc LoginUser(LoginUserRequest) returns (LoginUserResponse) {
     option (google.api.http) = {
-      post: "/v1/login_user"
+      post: "/v1/user/login"
       body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
@@ -54,10 +55,20 @@ service EenergyService {
     };
   }
   rpc VerifyEmail(VerifyEmailRequest) returns (VerifyEmailResponse) {
-    option (google.api.http) = {get: "/v1/verify_email"};
+    option (google.api.http) = {get: "/v1/verify-email"};
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       description: "Use this API to verify the user email";
       summary: "verify email";
+    };
+  }
+  rpc TransferEnergy(TransferEnergyRequest) returns (TransferEnergyResponse) {
+    option (google.api.http) = {
+      post: "/v1/energy/transfer"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      description: "Use this API to transfer energy from account to another";
+      summary: "transfer energy";
     };
   }
 }

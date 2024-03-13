@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package pb;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/aradwann/eenergy/pb";
+
+message TransferEnergyRequest {
+  int64 from_account_id = 1;
+  int64 to_account_id = 2;
+  int64 amount = 3;
+}
+
+message TransferEnergyResponse {
+  Transfer transfer = 1;
+  Account from_account = 2;
+  // Account to_account = 3; // don't expose other user account to the sender
+  Entry from_entry = 4;
+  // Entry to_entry = 5; // don't expose other user account to the sender
+}
+
+message Transfer {
+  int64 id = 1;
+  int64 from_account_id = 2;
+  int64 to_account_id = 3;
+  int64 amount = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+message Account {
+  int64 id = 1;
+  string owner = 2;
+  int64 balance = 3;
+  string unit = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+message Entry {
+  int64 id = 1;
+  int64 account_id = 2;
+  int64 amount = 3;
+  google.protobuf.Timestamp created_at = 5;
+}

@@ -19,10 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	EenergyService_CreateUser_FullMethodName  = "/pb.EenergyService/CreateUser"
-	EenergyService_UpdateUser_FullMethodName  = "/pb.EenergyService/UpdateUser"
-	EenergyService_LoginUser_FullMethodName   = "/pb.EenergyService/LoginUser"
-	EenergyService_VerifyEmail_FullMethodName = "/pb.EenergyService/VerifyEmail"
+	EenergyService_CreateUser_FullMethodName     = "/pb.EenergyService/CreateUser"
+	EenergyService_UpdateUser_FullMethodName     = "/pb.EenergyService/UpdateUser"
+	EenergyService_LoginUser_FullMethodName      = "/pb.EenergyService/LoginUser"
+	EenergyService_VerifyEmail_FullMethodName    = "/pb.EenergyService/VerifyEmail"
+	EenergyService_TransferEnergy_FullMethodName = "/pb.EenergyService/TransferEnergy"
 )
 
 // EenergyServiceClient is the client API for EenergyService service.
@@ -33,6 +34,7 @@ type EenergyServiceClient interface {
 	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UpdateUserResponse, error)
 	LoginUser(ctx context.Context, in *LoginUserRequest, opts ...grpc.CallOption) (*LoginUserResponse, error)
 	VerifyEmail(ctx context.Context, in *VerifyEmailRequest, opts ...grpc.CallOption) (*VerifyEmailResponse, error)
+	TransferEnergy(ctx context.Context, in *TransferEnergyRequest, opts ...grpc.CallOption) (*TransferEnergyResponse, error)
 }
 
 type eenergyServiceClient struct {
@@ -79,6 +81,15 @@ func (c *eenergyServiceClient) VerifyEmail(ctx context.Context, in *VerifyEmailR
 	return out, nil
 }
 
+func (c *eenergyServiceClient) TransferEnergy(ctx context.Context, in *TransferEnergyRequest, opts ...grpc.CallOption) (*TransferEnergyResponse, error) {
+	out := new(TransferEnergyResponse)
+	err := c.cc.Invoke(ctx, EenergyService_TransferEnergy_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EenergyServiceServer is the server API for EenergyService service.
 // All implementations must embed UnimplementedEenergyServiceServer
 // for forward compatibility
@@ -87,6 +98,7 @@ type EenergyServiceServer interface {
 	UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error)
 	LoginUser(context.Context, *LoginUserRequest) (*LoginUserResponse, error)
 	VerifyEmail(context.Context, *VerifyEmailRequest) (*VerifyEmailResponse, error)
+	TransferEnergy(context.Context, *TransferEnergyRequest) (*TransferEnergyResponse, error)
 	mustEmbedUnimplementedEenergyServiceServer()
 }
 
@@ -105,6 +117,9 @@ func (UnimplementedEenergyServiceServer) LoginUser(context.Context, *LoginUserRe
 }
 func (UnimplementedEenergyServiceServer) VerifyEmail(context.Context, *VerifyEmailRequest) (*VerifyEmailResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VerifyEmail not implemented")
+}
+func (UnimplementedEenergyServiceServer) TransferEnergy(context.Context, *TransferEnergyRequest) (*TransferEnergyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TransferEnergy not implemented")
 }
 func (UnimplementedEenergyServiceServer) mustEmbedUnimplementedEenergyServiceServer() {}
 
@@ -191,6 +206,24 @@ func _EenergyService_VerifyEmail_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EenergyService_TransferEnergy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TransferEnergyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EenergyServiceServer).TransferEnergy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EenergyService_TransferEnergy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EenergyServiceServer).TransferEnergy(ctx, req.(*TransferEnergyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // EenergyService_ServiceDesc is the grpc.ServiceDesc for EenergyService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -213,6 +246,10 @@ var EenergyService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "VerifyEmail",
 			Handler:    _EenergyService_VerifyEmail_Handler,
+		},
+		{
+			MethodName: "TransferEnergy",
+			Handler:    _EenergyService_TransferEnergy_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

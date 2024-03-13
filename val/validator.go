@@ -60,6 +60,20 @@ func ValidateEmailId(value int64) error {
 	return nil
 }
 
+func ValidateAccountId(value int64) error {
+	if value <= 0 {
+		return errors.New("must be a positive integer")
+	}
+	return nil
+}
+
+func ValidateAmount(value int64) error {
+	if value <= 0 {
+		return errors.New("must be a positive integer")
+	}
+	return nil
+}
+
 func ValidateSecretCode(value string) error {
 	return ValidateString(value, 32, 128)
 }

@@ -21,7 +21,41 @@
     "application/json"
   ],
   "paths": {
-    "/v1/create_user": {
+    "/v1/energy/transfer": {
+      "post": {
+        "summary": "transfer energy",
+        "description": "Use this API to transfer energy from account to another",
+        "operationId": "EenergyService_TransferEnergy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/pbTransferEnergyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/pbTransferEnergyRequest"
+            }
+          }
+        ],
+        "tags": [
+          "EenergyService"
+        ]
+      }
+    },
+    "/v1/user": {
       "post": {
         "summary": "Create new user",
         "description": "Use this API to create a new user",
@@ -53,43 +87,7 @@
         "tags": [
           "EenergyService"
         ]
-      }
-    },
-    "/v1/login_user": {
-      "post": {
-        "summary": "Login user",
-        "description": "Use this API to login user and get access token \u0026 refresh token",
-        "operationId": "EenergyService_LoginUser",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/pbLoginUserResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/pbLoginUserRequest"
-            }
-          }
-        ],
-        "tags": [
-          "EenergyService"
-        ]
-      }
-    },
-    "/v1/update_user": {
+      },
       "patch": {
         "summary": "Update user",
         "description": "Use this API to update user",
@@ -123,7 +121,41 @@
         ]
       }
     },
-    "/v1/verify_email": {
+    "/v1/user/login": {
+      "post": {
+        "summary": "Login user",
+        "description": "Use this API to login user and get access token \u0026 refresh token",
+        "operationId": "EenergyService_LoginUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/pbLoginUserResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/pbLoginUserRequest"
+            }
+          }
+        ],
+        "tags": [
+          "EenergyService"
+        ]
+      }
+    },
+    "/v1/verify-email": {
       "get": {
         "summary": "verify email",
         "description": "Use this API to verify the user email",
@@ -164,6 +196,29 @@
     }
   },
   "definitions": {
+    "pbAccount": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "owner": {
+          "type": "string"
+        },
+        "balance": {
+          "type": "string",
+          "format": "int64"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
     "pbCreateUserRequest": {
       "type": "object",
       "properties": {
@@ -186,6 +241,27 @@
       "properties": {
         "user": {
           "$ref": "#/definitions/pbUser"
+        }
+      }
+    },
+    "pbEntry": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "accountId": {
+          "type": "string",
+          "format": "int64"
+        },
+        "amount": {
+          "type": "string",
+          "format": "int64"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
         }
       }
     },
@@ -222,6 +298,64 @@
         "refreshTokenExpiresAt": {
           "type": "string",
           "format": "date-time"
+        }
+      }
+    },
+    "pbTransfer": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "fromAccountId": {
+          "type": "string",
+          "format": "int64"
+        },
+        "toAccountId": {
+          "type": "string",
+          "format": "int64"
+        },
+        "amount": {
+          "type": "string",
+          "format": "int64"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "pbTransferEnergyRequest": {
+      "type": "object",
+      "properties": {
+        "fromAccountId": {
+          "type": "string",
+          "format": "int64"
+        },
+        "toAccountId": {
+          "type": "string",
+          "format": "int64"
+        },
+        "amount": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "pbTransferEnergyResponse": {
+      "type": "object",
+      "properties": {
+        "transfer": {
+          "$ref": "#/definitions/pbTransfer"
+        },
+        "fromAccount": {
+          "$ref": "#/definitions/pbAccount"
+        },
+        "fromEntry": {
+          "$ref": "#/definitions/pbEntry",
+          "description": "Entry to_entry = 5;",
+          "title": "Account to_account = 3;"
         }
       }
     },
