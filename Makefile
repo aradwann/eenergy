@@ -33,7 +33,7 @@ test:
 	go test -short -v -cover ./...
 
 testci:
-	go test -short -race -covermode atomic -coverprofile=covprofile $(go list ./... | grep -v ./pb/)
+	go test -short -race -covermode atomic -coverprofile=covprofile $$(go list ./... | grep -v /pb$$)
 
 server:
 	go run main.go
