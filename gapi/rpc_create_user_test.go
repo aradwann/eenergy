@@ -53,7 +53,7 @@ func EqCreateUserTxParams(arg db.CreateUserTxParams, password string, user db.Us
 	return eqCreateUserTxParamsMatcher{arg, password, user}
 }
 
-func randomUser(t *testing.T) (user db.User, password string) {
+func randomUser(t *testing.T, role string) (user db.User, password string) {
 	password = util.RandomString(6)
 	hashedPassword, err := util.HashPassword(password)
 	require.NoError(t, err)
@@ -63,13 +63,13 @@ func randomUser(t *testing.T) (user db.User, password string) {
 		HashedPassword: hashedPassword,
 		FullName:       util.RandomOwner(),
 		Email:          util.RandomEmail(),
-		Role:           util.GeneratorRole,
+		Role:           role,
 	}
 	return
 }
 
 func TestCreateUserAPI(t *testing.T) {
-	user, password := randomUser(t)
+	user, password := randomUser(t, util.UserRole)
 
 	testCases := []struct {
 		name          string

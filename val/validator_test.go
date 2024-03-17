@@ -73,19 +73,43 @@ func TestValidateEmail(t *testing.T) {
 	}
 }
 
-func TestValidateEmailId(t *testing.T) {
+func TestValidateID(t *testing.T) {
 	tests := []struct {
 		name      string
 		emailId   int64
 		expectErr bool
 	}{
 		{"Valid Email ID", 1, false},
+		{"Invalid Email ID", 0, true},
 		{"Invalid Email ID", -1, true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := ValidateEmailId(tt.emailId)
+			err := ValidateID(tt.emailId)
+			if tt.expectErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestValidateIntNotNegative(t *testing.T) {
+	tests := []struct {
+		name      string
+		emailId   int64
+		expectErr bool
+	}{
+		{"zero", 0, false},
+		{"postive", 1, false},
+		{"negative", -1, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidateIntNotNegative(tt.emailId)
 			if tt.expectErr {
 				require.Error(t, err)
 			} else {

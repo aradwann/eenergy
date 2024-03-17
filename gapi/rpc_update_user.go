@@ -16,12 +16,12 @@ import (
 )
 
 func (server *Server) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UpdateUserResponse, error) {
-	authPayload, err := server.authorizeUser(ctx, []string{util.AdminRole, util.GeneratorRole})
+	authPayload, err := server.authorizeUser(ctx, []string{util.AdminRole, util.UserRole})
 	if err != nil {
 		return nil, unauthenticatedError(err)
 	}
 
-	if authPayload.Username != req.GetUsername() {
+	if authPayload.Role == util.UserRole && authPayload.Username != req.GetUsername() {
 		return nil, status.Error(codes.PermissionDenied, "cannot update other user's info")
 	}
 

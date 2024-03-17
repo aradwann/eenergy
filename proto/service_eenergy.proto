@@ -4,7 +4,10 @@ package pb;
 
 import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
+import "rpc_create_account.proto";
 import "rpc_create_user.proto";
+import "rpc_list_account_entries.proto";
+import "rpc_list_user_accounts.proto";
 import "rpc_login_user.proto";
 import "rpc_transfer_energy.proto";
 import "rpc_update_user.proto";
@@ -69,6 +72,30 @@ service EenergyService {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       description: "Use this API to transfer energy from account to another";
       summary: "transfer energy";
+    };
+  }
+  rpc ListUserAccounts(ListUserAccountsRequest) returns (ListUserAccountsResponse) {
+    option (google.api.http) = {get: "/v1/accounts"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      description: "Use this API to get User accounts";
+      summary: "user accounts";
+    };
+  }
+  rpc ListAccountEntries(ListAccountEntriesRequest) returns (ListAccountEntriesResponse) {
+    option (google.api.http) = {get: "/v1/accounts/{account_id}/entries"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      description: "Use this API to get user account entries";
+      summary: "account entries";
+    };
+  }
+  rpc CreateAccount(CreateAccountRequest) returns (CreateAccountResponse) {
+    option (google.api.http) = {
+      post: "/v1/accounts"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      description: "Use this API to create an account";
+      summary: "create account";
     };
   }
 }

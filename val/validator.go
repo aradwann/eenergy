@@ -53,14 +53,15 @@ func ValidateEmail(value string) error {
 	}
 	return nil
 }
-func ValidateEmailId(value int64) error {
-	if value <= 0 {
-		return errors.New("must be a positive integer")
+
+func ValidateIntNotNegative(value int64) error {
+	if value < 0 {
+		return errors.New("must be zero or positive")
 	}
 	return nil
 }
 
-func ValidateAccountId(value int64) error {
+func ValidateID(value int64) error {
 	if value <= 0 {
 		return errors.New("must be a positive integer")
 	}

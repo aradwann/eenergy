@@ -16,7 +16,7 @@ import (
 )
 
 func TestLoginUser(t *testing.T) {
-	user, password := randomUser(t)
+	user, password := randomUser(t, util.UserRole)
 	hashedPassword, err := util.HashPassword(password)
 	require.NoError(t, err)
 	user.HashedPassword = hashedPassword

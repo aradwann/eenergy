@@ -14,7 +14,7 @@ import (
 )
 
 func (server *Server) TransferEnergy(ctx context.Context, req *pb.TransferEnergyRequest) (*pb.TransferEnergyResponse, error) {
-	authPayload, err := server.authorizeUser(ctx, []string{util.AdminRole, util.GeneratorRole})
+	authPayload, err := server.authorizeUser(ctx, []string{util.AdminRole, util.UserRole})
 	if err != nil {
 		return nil, unauthenticatedError(err)
 	}
@@ -57,11 +57,11 @@ func (server *Server) TransferEnergy(ctx context.Context, req *pb.TransferEnergy
 }
 
 func validateTransferEnergyRequest(req *pb.TransferEnergyRequest) (violations []*errdetails.BadRequest_FieldViolation) {
-	if err := val.ValidateAccountId(req.GetFromAccountId()); err != nil {
+	if err := val.ValidateID(req.GetFromAccountId()); err != nil {
 		violations = append(violations, fieldViolation("from_account_id", err))
 	}
 
-	if err := val.ValidateAccountId(req.GetToAccountId()); err != nil {
+	if err := val.ValidateID(req.GetToAccountId()); err != nil {
 		violations = append(violations, fieldViolation("to_account_id", err))
 	}
 

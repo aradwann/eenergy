@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package pb;
+
+import "account.proto";
+
+option go_package = "github.com/aradwann/eenergy/pb";
+
+message ListUserAccountsRequest {
+  optional string username = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
+message ListUserAccountsResponse {
+  repeated Account accounts = 1;
+}

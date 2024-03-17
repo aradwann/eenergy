@@ -18,7 +18,7 @@ func TestPASETOMaker(t *testing.T) {
 
 	issuedAt := time.Now()
 	expiredAt := issuedAt.Add(duration)
-	role := util.GeneratorRole
+	role := util.UserRole
 
 	token, payload, err := maker.CreateToken(username, role, duration)
 	require.NoError(t, err)
@@ -41,7 +41,7 @@ func TestExpiredPASETOToken(t *testing.T) {
 	maker, err := NewPASETOMaker(util.RandomString(32))
 	require.NoError(t, err)
 
-	role := util.GeneratorRole
+	role := util.UserRole
 
 	token, payload, err := maker.CreateToken(util.RandomOwner(), role, -time.Minute)
 	require.NoError(t, err)

@@ -35,6 +35,24 @@ func convertAccount(account db.Account) *pb.Account {
 	}
 }
 
+func convertAccounts(accounts []db.Account) []*pb.Account {
+	var accs []*pb.Account
+
+	for _, acc := range accounts {
+		accs = append(accs, convertAccount(acc))
+	}
+	return accs
+}
+
+func convertEntries(entries []db.Entry) []*pb.Entry {
+	var ents []*pb.Entry
+
+	for _, entry := range entries {
+		ents = append(ents, convertEntry(entry))
+	}
+	return ents
+}
+
 func convertEntry(entry db.Entry) *pb.Entry {
 	return &pb.Entry{
 		Id:        entry.ID,

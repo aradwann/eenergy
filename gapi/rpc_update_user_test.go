@@ -18,7 +18,7 @@ import (
 )
 
 func TestUpdateUserAPI(t *testing.T) {
-	user, _ := randomUser(t)
+	user, _ := randomUser(t, util.UserRole)
 
 	newName := util.RandomOwner()
 	newEmail := util.RandomEmail()

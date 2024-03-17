@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -51,46 +52,40 @@ func RunDBMigrations(db *sql.DB, migrationsURL string) {
 func getSQLFiles(migrationDir string) ([]string, error) {
 	var sqlFiles []string
 
-	err := filepath.WalkDir(migrationDir, func(path string, d os.DirEntry, err error) error {
+	err := filepath.Walk(migrationDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return err
+			return err // Immediately return errors for short-circuiting
 		}
 
-		// Skip directories
-		if d.IsDir() {
-			return nil
-		}
-
-		// Check if the file has a .sql extension
-		if strings.HasSuffix(path, ".sql") {
+		// Only process regular files with .sql extension
+		if info.Mode().IsRegular() && strings.HasSuffix(path, ".sql") {
 			sqlFiles = append(sqlFiles, path)
 		}
 
 		return nil
 	})
 
-	return sqlFiles, err
+	if err != nil {
+		return nil, err
+	}
+
+	return sqlFiles, nil
 }
 
 func runUnversionedMigrations(db *sql.DB, migrationDir string) error {
 
 	sqlFiles, err := getSQLFiles(migrationDir)
-
 	if err != nil {
 		return err
 	}
-	// Sort files to ensure execution order
-	// Note: You may need a custom sorting logic if file names include version numbers
-	// For simplicity, we assume alphabetical order here.
-	// Sorting ensures that the files are executed in the correct order.
-	// sortFiles(sqlFiles)
 
 	// Execute each SQL file
 	for _, file := range sqlFiles {
+		log.Printf("Executing SQL file: %s", file)
 
 		contents, err := os.ReadFile(file)
 		if err != nil {
-			return err
+			return fmt.Errorf("error reading SQL file %s: %w", file, err)
 		}
 
 		// Execute the SQL content
@@ -99,6 +94,7 @@ func runUnversionedMigrations(db *sql.DB, migrationDir string) error {
 			return fmt.Errorf("error executing SQL file %s: %w", file, err)
 		}
 
+		log.Printf("Finished executing SQL file: %s", file)
 	}
 
 	return nil

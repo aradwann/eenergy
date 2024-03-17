@@ -30,7 +30,7 @@ func (server *Server) VerifyEmail(ctx context.Context, req *pb.VerifyEmailReques
 }
 
 func validateVerifyEmailRequest(req *pb.VerifyEmailRequest) (violations []*errdetails.BadRequest_FieldViolation) {
-	if err := val.ValidateEmailId(req.GetEmailId()); err != nil {
+	if err := val.ValidateID(req.GetEmailId()); err != nil {
 		violations = append(violations, fieldViolation("email_id", err))
 	}
 	if err := val.ValidateSecretCode(req.GetSecretCode()); err != nil {

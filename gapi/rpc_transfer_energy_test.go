@@ -17,10 +17,10 @@ import (
 )
 
 func TestTransferEnergyAPI(t *testing.T) {
-	user1, _ := randomUser(t)
+	user1, _ := randomUser(t, util.UserRole)
 	account1 := randomAccount(user1)
 
-	user2, _ := randomUser(t)
+	user2, _ := randomUser(t, util.UserRole)
 	account2 := randomAccount(user2)
 
 	amount := int64(1)
