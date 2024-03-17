@@ -50,5 +50,5 @@ protoc:
 evans:
 	evans --host localhost --port 9090 -r repl
 
-.PHONEY: createdb dropdb migrateup migrateup1 migratedown migratedown1 test server protoc evans migrateprocsup
+.PHONEY: createdb dropdb migrateup migrateup1 migratedown migratedown1 test server protoc evans 
 
