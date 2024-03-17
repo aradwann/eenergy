@@ -14,8 +14,8 @@ require (
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/mock v0.4.0
 	golang.org/x/crypto v0.21.0
-	google.golang.org/genproto/googleapis/api v0.0.0-20240311173647-c811ad7063a7
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240311173647-c811ad7063a7
+	google.golang.org/genproto/googleapis/api v0.0.0-20240314234333-6e1732d8331c
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240314234333-6e1732d8331c
 	google.golang.org/grpc v1.62.1
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.3.0
 	google.golang.org/protobuf v1.33.0
@@ -29,7 +29,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.14.3 // indirect
-	github.com/jackc/pgerrcode v0.0.0-20220416144525-469b46aa5efa // indirect
+	github.com/jackc/pgerrcode v0.0.0-20240316143900-6e2875d9b438 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgproto3/v2 v2.3.3 // indirect
 	github.com/jackc/pgtype v1.14.2 // indirect
@@ -66,7 +66,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/exp v0.0.0-20240222234643-814bf88cf225 // indirect
+	golang.org/x/exp v0.0.0-20240314144324-c7f7c6466f7f // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
