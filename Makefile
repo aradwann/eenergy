@@ -50,5 +50,14 @@ protoc:
 evans:
 	evans --host localhost --port 9090 -r repl
 
-.PHONEY: createdb dropdb migrateup migrateup1 migratedown migratedown1 test server protoc evans 
+# certs to be added to certs directory for local development purposes
+create-server-cert:
+	openssl req -newkey rsa:2048 -nodes -keyout server.key -x509 -days 365 -out server.crt
+create-ca-cert:
+	openssl genrsa -out ca.key 2048
+	openssl req -x509 -new -nodes -key ca.key -sha256 -days 3650 -out ca.crt
+	openssl x509 -in ca.crt -text -noout
+
+
+.PHONEY: createdb dropdb migrateup migrateup1 migratedown migratedown1 test server protoc evans create-certs create-ca-cert
 

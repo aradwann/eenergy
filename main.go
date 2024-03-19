@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"database/sql"
 	"embed"
 	"fmt"
@@ -20,6 +22,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/hibiken/asynq"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
 )
@@ -80,25 +83,49 @@ func runDBMigrations(dbConn *sql.DB, migrationsURL string) {
 }
 
 func runGrpcServer(config util.Config, store db.Store, taskDistributor worker.TaskDistributor) {
+
+	cert, err := tls.LoadX509KeyPair("certs/server.crt", "certs/server.key")
+	if err != nil {
+		handleError("cannot load server key pair", err)
+	}
+
+	// Create a certificate pool from the certificate authority
+	certPool := x509.NewCertPool()
+	ca, err := os.ReadFile("certs/ca.crt") // If you have a CA certificate, otherwise skip this part
+	if err != nil {
+		handleError("cannot read ca certificate", err)
+	}
+
+	// Append the client certificates from the CA
+	if ok := certPool.AppendCertsFromPEM(ca); !ok {
+		handleError("failed to append client certs", nil)
+	}
+
+	// Create the TLS credentials for the server
+	creds := credentials.NewTLS(&tls.Config{
+		// ClientAuth:   tls.RequireAndVerifyClientCert, // This requires and verifies client certificate
+		Certificates: []tls.Certificate{cert},
+		ClientCAs:    certPool,
+	})
+
 	server, err := gapi.NewServer(config, store, taskDistributor)
 	if err != nil {
 		handleError("cannot create gRPC server", err)
 	}
 
 	grpcLogger := grpc.UnaryInterceptor(gapi.GrpcLogger)
-	grpcServer := grpc.NewServer(grpcLogger)
+	grpcServer := grpc.NewServer(grpcLogger, grpc.Creds(creds))
 	pb.RegisterEenergyServiceServer(grpcServer, server)
 	reflection.Register(grpcServer)
 
 	listener, err := net.Listen("tcp", config.GRPCServerAddress)
 	if err != nil {
-		handleError("cannot create listener for gRPC server", err)
+		handleError("cannot create listener", err)
 	}
 
-	slog.Info(fmt.Sprintf("start gRPC server at %s", listener.Addr().String()))
-	err = grpcServer.Serve(listener)
-	if err != nil {
-		handleError("cannot start gRPC server", err)
+	slog.Info(fmt.Sprintf("start gRPC server at %s with TLS", listener.Addr().String()))
+	if err := grpcServer.Serve(listener); err != nil {
+		handleError("failed to serve", err)
 	}
 }
 
