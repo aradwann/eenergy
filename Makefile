@@ -1,6 +1,10 @@
 
 DB_SOURCE = "postgresql://root:secret@localhost:5432/eenergy?sslmode=disable"
 MIGRATIONS_PATH = db/migrations
+CONFIG_PATH=dev-certs/
+
+init:
+	mkdir -p ${CONFIG_PATH}
 
 createdb:
 	docker exec -it postgres15 createdb --username=root --owner=root eenergy
@@ -51,13 +55,26 @@ evans:
 	evans --host localhost --port 9090 -r repl
 
 # certs to be added to certs directory for local development purposes
-create-server-cert:
-	openssl req -newkey rsa:2048 -nodes -keyout server.key -x509 -days 365 -out server.crt
-create-ca-cert:
-	openssl genrsa -out ca.key 2048
-	openssl req -x509 -new -nodes -key ca.key -sha256 -days 3650 -out ca.crt
-	openssl x509 -in ca.crt -text -noout
+gen-cert:
+# Create the CA private key
+	openssl genrsa -out ca-key.pem 2048
+# Create a self-signed CA certificate
+	openssl req -x509 -new -nodes -key ca-key.pem -days 3650 -out ca.pem -subj "/C=US/ST=NY/L=NYC/O=eenergy/CN=CA"
+# Create the server private key
+	openssl genrsa -out server.key 2048
+# Create the server CSR
+	openssl req -new -key server.key -out server.csr -subj "/C=US/ST=NY/L=NYC/O=eenergy/CN=server"
+# Sign the server CSR with the CA certificate
+	openssl x509 -req -in server.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out server.crt -days 365 -sha256
+# Create the client private key
+	openssl genrsa -out client.key 2048
+# Create the client CSR
+	openssl req -new -key client.key -out client.csr -subj "/C=US/ST=NY/L=NYC/O=eenergy/CN=client"
+# Sign the client CSR with the CA certificate
+	openssl x509 -req -in client.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out client.crt -days 365 -sha256
+
+	mv *.pem *.csr *.crt *.srl *.key ${CONFIG_PATH}
 
 
-.PHONEY: createdb dropdb migrateup migrateup1 migratedown migratedown1 test server protoc evans create-certs create-ca-cert
+.PHONEY: createdb dropdb migrateup migrateup1 migratedown migratedown1 test server protoc evans gen-cert init
 

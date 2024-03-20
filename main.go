@@ -84,14 +84,14 @@ func runDBMigrations(dbConn *sql.DB, migrationsURL string) {
 
 func runGrpcServer(config util.Config, store db.Store, taskDistributor worker.TaskDistributor) {
 
-	cert, err := tls.LoadX509KeyPair("certs/server.crt", "certs/server.key")
+	cert, err := tls.LoadX509KeyPair(config.ServerCrtPath, config.ServerKeyPath)
 	if err != nil {
 		handleError("cannot load server key pair", err)
 	}
 
 	// Create a certificate pool from the certificate authority
 	certPool := x509.NewCertPool()
-	ca, err := os.ReadFile("certs/ca.crt") // If you have a CA certificate, otherwise skip this part
+	ca, err := os.ReadFile(config.CACrtPath) // If you have a CA certificate, otherwise skip this part
 	if err != nil {
 		handleError("cannot read ca certificate", err)
 	}
@@ -103,7 +103,7 @@ func runGrpcServer(config util.Config, store db.Store, taskDistributor worker.Ta
 
 	// Create the TLS credentials for the server
 	creds := credentials.NewTLS(&tls.Config{
-		// ClientAuth:   tls.RequireAndVerifyClientCert, // This requires and verifies client certificate
+		ClientAuth:   tls.RequireAndVerifyClientCert, // This requires and verifies client certificate
 		Certificates: []tls.Certificate{cert},
 		ClientCAs:    certPool,
 	})

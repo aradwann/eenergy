@@ -11,7 +11,7 @@ COPY --from=builder /app/main .
 COPY app.env .
 COPY start.sh .
 COPY db/migrations ./db/migrations
-COPY certs ./certs
+COPY dev-certs ./dev-certs
 
 EXPOSE 8080
 

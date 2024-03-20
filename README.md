@@ -40,9 +40,16 @@ To contribute to eEnergy, you will need to set up your development environment w
 
 2. **Set Up Your Local Development Environment**
     - Ensure all required tools are installed.
-    - Set up the local database using migrations.
 
-3. **Build and Run Using Docker**
+3. **Generate Certificates For Local Use**
+  - ```bash
+      make init
+      ```
+  - ```bash
+      make gen-cert
+      ```
+
+4. **Build and Run Using Docker**
     - Build the Docker images:
 
       ```bash
@@ -54,6 +61,10 @@ To contribute to eEnergy, you will need to set up your development environment w
       ```bash
       docker compose up
       ```
+
+### using postman with mTLS enabled
+1. add CA pem
+2. add client certificate with crt, key files and localhost:9090 as domain
 
 4. **Access the Application**
     - The application and its services are now accessible on your local machine.
@@ -73,3 +84,10 @@ eEnergy is open-sourced under the [MIT license](LICENSE).
 ---
 
 By contributing to eEnergy, you're helping to create a more sustainable and efficient future for energy consumption and distribution. Let's make a difference together!
+
+<!-- TODO : 
+- add account balance endpoint for admin only (or make it smart meter responsibility)
+- improve logging and configure graphana
+- explore pprof
+- impl nearest energy source endpoint (input: current location, output: nearest energy source details)
+- watch kubernetes section and understand it -->
