@@ -56,7 +56,8 @@ func TestHttpLogger(t *testing.T) {
 	// Mock HTTP handler function
 	mockHandler := http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusOK)
-		res.Write([]byte("OK"))
+		_, err := res.Write([]byte("OK"))
+		require.NoError(t, err)
 	})
 
 	// Create a test HTTP request
@@ -82,7 +83,9 @@ func TestHttpLoggerErr(t *testing.T) {
 	// Mock HTTP handler function
 	mockHandler := http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusInternalServerError)
-		res.Write([]byte("Error"))
+		_, err := res.Write([]byte("Error"))
+		require.NoError(t, err)
+
 	})
 
 	// Create a test HTTP request
@@ -116,7 +119,8 @@ func TestResponseRecorder(t *testing.T) {
 	}
 
 	// Write some data to ResponseRecorder
-	rec.Write([]byte("Test Body"))
+	_, err := rec.Write([]byte("Test Body"))
+	require.NoError(t, err)
 
 	// Verify the StatusCode
 	require.Equal(t, rec.StatusCode, http.StatusOK)
@@ -140,11 +144,15 @@ func captureLogs(fn func(), logCallback func(string)) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 
-	go func() {
+	go func() error {
 		defer wg.Done()
 		var buf bytes.Buffer
-		io.Copy(&buf, r)
+		_, err := io.Copy(&buf, r)
+		if err != nil {
+			return err
+		}
 		logCallback(buf.String())
+		return nil
 	}()
 
 	fn()

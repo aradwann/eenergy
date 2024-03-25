@@ -3,7 +3,6 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -29,8 +28,8 @@ func RunDBMigrations(db *sql.DB, migrationsURL string) {
 		// log.Fatal().Msg("cannot create new migrate instance")
 		slog.Error("cannot create new migrate instance %s", err)
 	}
-	migration.Up()
-	if err = migration.Up(); err != nil && err != migrate.ErrNoChange {
+	err = migration.Up()
+	if err != nil && err != migrate.ErrNoChange {
 		slog.Error("failed to run migrate up %s", err)
 
 	}
@@ -81,7 +80,7 @@ func runUnversionedMigrations(db *sql.DB, migrationDir string) error {
 
 	// Execute each SQL file
 	for _, file := range sqlFiles {
-		log.Printf("Executing SQL file: %s", file)
+		// log.Printf("Executing SQL file: %s", file)
 
 		contents, err := os.ReadFile(file)
 		if err != nil {
@@ -94,7 +93,7 @@ func runUnversionedMigrations(db *sql.DB, migrationDir string) error {
 			return fmt.Errorf("error executing SQL file %s: %w", file, err)
 		}
 
-		log.Printf("Finished executing SQL file: %s", file)
+		// log.Printf("Finished executing SQL file: %s", file)
 	}
 
 	return nil

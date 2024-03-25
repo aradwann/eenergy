@@ -6,15 +6,18 @@ import (
 	"crypto/x509"
 	"database/sql"
 	"embed"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
 
 	db "github.com/aradwann/eenergy/db/store"
 	"github.com/aradwann/eenergy/gapi"
 	"github.com/aradwann/eenergy/mail"
+	"github.com/aradwann/eenergy/observability"
 	"github.com/aradwann/eenergy/pb"
 	"github.com/aradwann/eenergy/util"
 	"github.com/aradwann/eenergy/worker"
@@ -25,12 +28,30 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
+
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 //go:embed doc/swagger/*
 var content embed.FS
 
 func main() {
+
+	// Handle SIGINT (CTRL+C) gracefully.
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
+
+	// Set up OpenTelemetry.
+	otelShutdown, err := observability.SetupOTelSDK(ctx)
+	if err != nil {
+		return
+	}
+	// Handle shutdown properly so nothing leaks.
+	defer func() {
+		err = errors.Join(err, otelShutdown(context.Background()))
+	}()
+
 	config, err := util.LoadConfig(".", "app")
 	if err != nil {
 		handleError("error loading config", err)
@@ -114,7 +135,7 @@ func runGrpcServer(config util.Config, store db.Store, taskDistributor worker.Ta
 	}
 
 	grpcLogger := grpc.UnaryInterceptor(gapi.GrpcLogger)
-	grpcServer := grpc.NewServer(grpcLogger, grpc.Creds(creds))
+	grpcServer := grpc.NewServer(grpcLogger, grpc.Creds(creds), grpc.StatsHandler(otelgrpc.NewServerHandler()))
 	pb.RegisterEenergyServiceServer(grpcServer, server)
 	reflection.Register(grpcServer)
 
@@ -162,7 +183,7 @@ func runGatewayServer(config util.Config, store db.Store, taskDistributor worker
 	}
 
 	slog.Info(fmt.Sprintf("start HTTP gateway server at %s", listener.Addr().String()))
-	handler := gapi.HttpLogger(mux)
+	handler := otelhttp.NewHandler(mux, "your-service-name")
 	err = http.Serve(listener, handler)
 	if err != nil {
 		handleError("cannot start HTTP gateway server", err)
