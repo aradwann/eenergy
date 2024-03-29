@@ -1,6 +1,7 @@
 
 services:
   postgres:
+    container_name: postgres
     image: postgis/postgis:16-3.4-alpine
     environment:
       - POSTGRES_DB=eenergy
@@ -17,6 +18,7 @@ services:
       retries: 5
 
   pgadmin4:
+    container_name: pgadmin4
     image: dpage/pgadmin4
     environment:
       - PGADMIN_DEFAULT_EMAIL=user@domain.com
@@ -25,6 +27,7 @@ services:
       - "80:80"
 
   redis:
+    container_name: redis
     image: redis:7-alpine
     ports:
       - "6379:6379"
@@ -35,12 +38,13 @@ services:
       retries: 5
 
   api:
+    container_name: api
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
-      - "9090:9090"
+      - 8080:8080
+      - 9091:9091
     environment:
       - DB_SOURCE=postgresql://root:secret@postgres:5432/eenergy?sslmode=disable
       - REDIS_ADDRESS=redis:6379
@@ -49,9 +53,13 @@ services:
         condition: service_healthy  # Only start after postgres is healthy
       redis:  # Wait for redis to start
         condition: service_healthy  # Only start after redis is healthy
+      otel-collector:
+        condition: service_started
     # Removed entrypoint section
 
+  # logs containers
   loki:
+    container_name: loki
     image: grafana/loki:latest
     ports:
       - "3100:3100"
@@ -59,6 +67,7 @@ services:
       - loki-data:/loki
 
   promtail:
+    container_name: promtail
     image: grafana/promtail:latest
     volumes:
       - ./promtail-config.yml:/etc/promtail/promtail.yml
@@ -69,6 +78,7 @@ services:
       - loki
 
   grafana:
+    container_name: grafana
     image: grafana/grafana:latest
     ports:
       - "3000:3000"
@@ -76,6 +86,41 @@ services:
       - grafana-data:/var/lib/grafana
     depends_on:
       - loki
+  
+  # metrics containers 
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  # traces containes
+  # Jaeger
+  jaeger-all-in-one:
+    container_name: jaeger
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - 16686:16686
+      - "14268"
+      - "14250:14250"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+
+  otel-collector:
+    container_name: otel-collector
+    image: otel/opentelemetry-collector-contrib
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
+    ports:
+      - 1888:1888 # pprof extension
+      - 8888:8888 # Prometheus metrics exposed by the Collector
+      - 13133:13133 # health_check extension
+      - 4317:4317 # OTLP gRPC receiver
+      - 55679:55679 # zpages extension
+    depends_on:
+      - jaeger-all-in-one
 
 volumes:
   data-volume:
