@@ -26,7 +26,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 	defer os.Remove(tempFile.Name())
 
 	// Load configuration from the temporary file
-	config, err := LoadConfig(".", tempFile.Name())
+	config, err := LoadConfig()
 	assert.NoError(t, err)
 
 	// Assert the expected values
@@ -42,7 +42,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 }
 
 func createTempConfigFile(content string) (*os.File, error) {
-	tempFile, err := os.CreateTemp(".", "app.env")
+	tempFile, err := os.CreateTemp(".", ".env")
 	if err != nil {
 		return nil, err
 	}

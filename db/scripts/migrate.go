@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	config, err := util.LoadConfig(".", "app")
+	config, err := util.LoadConfig()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error loading config: %v\n", err)
 		os.Exit(1)
