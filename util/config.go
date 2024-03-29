@@ -28,11 +28,11 @@ type Config struct {
 }
 
 // LoadConfig read configuration from the file or environment variables
-func LoadConfig() (config Config, err error) {
-	viper.SetConfigName(".env") // Set the configuration file name to ".env"
-	viper.SetConfigType("env")  // Specify that it's an environment file
-	viper.AddConfigPath(".")    // Add the current working directory as a search path
-	viper.AutomaticEnv()        // Load environment variables from the system
+func LoadConfig(path, name string) (config Config, err error) {
+	viper.SetConfigName(name)  // Set the configuration file name to ".env"
+	viper.SetConfigType("env") // Specify that it's an environment file
+	viper.AddConfigPath(path)  // Add the current working directory as a search path
+	viper.AutomaticEnv()       // Load environment variables from the system
 
 	err = viper.ReadInConfig() // Read the configuration from the .env file
 	if err != nil {

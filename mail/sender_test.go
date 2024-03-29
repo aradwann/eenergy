@@ -13,7 +13,7 @@ func TestSendEmailWithGmail(t *testing.T) {
 		t.Skip()
 	}
 
-	config, err := util.LoadConfig()
+	config, err := util.LoadConfig(".", ".env")
 	require.NoError(t, err)
 
 	sender := NewGmailSender(config.EmailSenderName, config.EmailSenderAddress, config.EmailSenderPassword)
