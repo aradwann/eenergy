@@ -52,7 +52,7 @@ protoc:
 	proto/*.proto
 
 evans:
-	evans --host localhost --port 9090 -r repl
+	evans --host localhost --port 9091 -r repl
 
 # certs to be added to certs directory for local development purposes
 gen-cert:

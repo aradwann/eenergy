@@ -52,7 +52,7 @@ func main() {
 		err = errors.Join(err, otelShutdown(context.Background()))
 	}()
 
-	config, err := util.LoadConfig(".", "app")
+	config, err := util.LoadConfig()
 	if err != nil {
 		handleError("error loading config", err)
 	}

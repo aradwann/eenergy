@@ -14,7 +14,8 @@ eEnergy is a cutting-edge platform designed to revolutionize the way individuals
 - **High-Performance Backend**: Built with Go and gRPC for a fast, efficient, and scalable backend service.
 - **Job Queueing**: Leverages Redis for queueing jobs, such as sending verification emails to newly registered users.
 - **Containerization**: Utilizes Docker for easy deployment and scaling.
-- **Logging and Monitoring**: Incorporates Loki, Promtail, and Grafana for comprehensive logging and real-time monitoring.
+- **Observability**: Adopt OpenTelemetry observability standard that incorporates Loki, Promtail for logs, Jaeger for traces, Prometheus for metrics, and Grafana for a comprehensive real-time monitoring dashboard.
+
 - **Reliable Data Storage**: Uses PostgreSQL as the database, enhanced with stored procedures for efficient data management.
 
 ## Tools to Install
@@ -64,7 +65,7 @@ To contribute to eEnergy, you will need to set up your development environment w
 
 ### using postman with mTLS enabled
 1. add CA pem
-2. add client certificate with crt, key files and localhost:9090 as domain
+2. add client certificate with crt, key files and localhost:9091 as domain
 
 4. **Access the Application**
     - The application and its services are now accessible on your local machine.

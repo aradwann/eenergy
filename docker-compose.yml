@@ -48,6 +48,11 @@ services:
     environment:
       - DB_SOURCE=postgresql://root:secret@postgres:5432/eenergy?sslmode=disable
       - REDIS_ADDRESS=redis:6379
+      - OTEL_EXPORTER_OTLP_ENDPOINT
+      - OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
+      - OTEL_RESOURCE_ATTRIBUTES
+      - OTEL_SERVICE_NAME=eenergy
+
     depends_on:
       postgres:  # Wait for postgres to start
         condition: service_healthy  # Only start after postgres is healthy
@@ -94,17 +99,16 @@ services:
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
-      - "9090:9090"
+      - "${PROMETHEUS_SERVICE_PORT}:${PROMETHEUS_SERVICE_PORT}"
 
   # traces containes
   # Jaeger
-  jaeger-all-in-one:
+  jaeger:
     container_name: jaeger
     image: jaegertracing/all-in-one:latest
     ports:
-      - 16686:16686
-      - "14268"
-      - "14250:14250"
+      - "${JAEGER_SERVICE_PORT}"         # Jaeger UI
+      - "${OTEL_COLLECTOR_PORT_GRPC}"
     environment:
       - COLLECTOR_OTLP_ENABLED=true
 
@@ -117,10 +121,11 @@ services:
       - 1888:1888 # pprof extension
       - 8888:8888 # Prometheus metrics exposed by the Collector
       - 13133:13133 # health_check extension
-      - 4317:4317 # OTLP gRPC receiver
       - 55679:55679 # zpages extension
+      - "${OTEL_COLLECTOR_PORT_GRPC}"
+      - "${OTEL_COLLECTOR_PORT_HTTP}"
     depends_on:
-      - jaeger-all-in-one
+      - jaeger
 
 volumes:
   data-volume:
