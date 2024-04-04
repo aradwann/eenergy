@@ -26,6 +26,8 @@ import (
 	"github.com/hibiken/asynq"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/health"
+	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
 
@@ -136,6 +138,9 @@ func runGrpcServer(config util.Config, store db.Store, taskDistributor worker.Ta
 
 	grpcLogger := grpc.UnaryInterceptor(gapi.GrpcLogger)
 	grpcServer := grpc.NewServer(grpcLogger, grpc.Creds(creds), grpc.StatsHandler(otelgrpc.NewServerHandler()))
+
+	healthSrv := health.NewServer()
+	grpc_health_v1.RegisterHealthServer(grpcServer, healthSrv)
 	pb.RegisterEenergyServiceServer(grpcServer, server)
 	reflection.Register(grpcServer)
 

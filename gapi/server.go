@@ -10,7 +10,7 @@ import (
 	"github.com/aradwann/eenergy/worker"
 )
 
-// Server serves gRPC requests for our banking service.
+// Server serves gRPC requests for our eenergy service.
 type Server struct {
 	pb.UnimplementedEenergyServiceServer
 	config          util.Config

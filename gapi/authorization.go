@@ -17,7 +17,7 @@ const (
 
 func (server *Server) authorizeUser(ctx context.Context, accessibleRoles []string) (*token.Payload, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
+	if md == nil || !ok {
 		return nil, errors.New("missing metadata")
 	}
 	values := md.Get(authorizationHeader)
