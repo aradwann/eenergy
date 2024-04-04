@@ -68,8 +68,11 @@ services:
     image: grafana/loki:latest
     ports:
       - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml -print-config-stderr
     volumes:
-      - loki-data:/loki
+      - ./observability/loki/loki-config.yaml:/etc/loki/local-config.yaml
+      - ./observability/loki/loki_alert_rules.yml:/etc/loki/rules
+      - loki-data:/data
 
   promtail:
     container_name: promtail
