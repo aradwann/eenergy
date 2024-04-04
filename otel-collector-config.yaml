@@ -10,7 +10,7 @@ exporters:
   # prometheus:
   #   endpoint: prometheus:8888 # I think this is activated in case of collector push to prometheus, but it currently Prom. pulls from collector
 
-  otlp:
+  otlp/jaeger:
     endpoint: "jaeger:4317"
     tls:
       insecure: true
@@ -30,7 +30,7 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [logging, otlp]
+      exporters: [logging, otlp/jaeger]
     metrics:
       receivers: [otlp]
       processors: [batch]

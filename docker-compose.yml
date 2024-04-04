@@ -129,6 +129,7 @@ services:
       - "${OTEL_COLLECTOR_PORT_HTTP}"
     depends_on:
       - jaeger
+      - prometheus
 
 volumes:
   data-volume:
