@@ -1,0 +1,10 @@
+groups:
+  - name: example
+    rules:
+      - alert: HighCPUUsage
+        expr: process_cpu_seconds_total > 100
+        for: 5m
+        labels:
+          severity: page
+        annotations:
+          summary: High CPU usage detected

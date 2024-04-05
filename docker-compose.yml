@@ -60,7 +60,6 @@ services:
         condition: service_healthy  # Only start after redis is healthy
       otel-collector:
         condition: service_started
-    # Removed entrypoint section
 
   # logs containers
   loki:
@@ -72,17 +71,17 @@ services:
     command: -config.file=/etc/loki/local-config.yaml -print-config-stderr
     volumes:
       - ./observability/loki/loki-config.yaml:/etc/loki/local-config.yaml
-      - ./observability/loki/rules:/loki/rules 
+      - ./observability/loki/rules:/loki/rules/fake
 
   alertmanager:
     container_name: alertmanager
     image: prom/alertmanager:latest
-    # volumes:
-    #   - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
     ports:
       - "9093:9093"
     command:
-      # - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
       - '--storage.path=/alertmanager'
     depends_on:
       - prometheus
