@@ -17,7 +17,7 @@ scrape_configs:
         # filters:
         #   - name: name
         #     values: ["eenergy-api-1"] # Make sure this matches the exact container name
-  # TODO: rewrite conatiners filter
+    # TODO: rewrite conatiners filter
     # relabel_configs:
     #   # Correct the relabel_configs to ensure the target label correctly represents what you want to see in Loki
     #   - source_labels: [__meta_docker_container_name]

@@ -68,11 +68,24 @@ services:
     image: grafana/loki:latest
     ports:
       - "3100:3100"
+      - "9095:9095"
     command: -config.file=/etc/loki/local-config.yaml -print-config-stderr
     volumes:
       - ./observability/loki/loki-config.yaml:/etc/loki/local-config.yaml
-      - ./observability/loki/loki_alert_rules.yml:/etc/loki/rules
-      - loki-data:/data
+      - ./observability/loki/rules:/loki/rules 
+
+  alertmanager:
+    container_name: alertmanager
+    image: prom/alertmanager:latest
+    # volumes:
+    #   - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    ports:
+      - "9093:9093"
+    command:
+      # - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    depends_on:
+      - prometheus
 
   promtail:
     container_name: promtail
@@ -133,5 +146,4 @@ services:
 
 volumes:
   data-volume:
-  loki-data:
   grafana-data:
