@@ -12,11 +12,9 @@ FROM alpine:3.19
 WORKDIR /app
 COPY --from=builder /app/main .
 COPY .env .
-COPY start.sh .
 COPY db/migrations ./db/migrations
 COPY dev-certs ./dev-certs
 
 EXPOSE 8080
 
-CMD [ "/app/main" ]
-ENTRYPOINT [ "/app/start.sh" ]
+ENTRYPOINT [ "/app/main" ]

@@ -12,7 +12,7 @@ services:
     volumes:
       - data-volume:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "root"]
+      test: ["CMD", "pg_isready", "-U", "root", "-d", "postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -60,7 +60,6 @@ services:
         condition: service_healthy  # Only start after redis is healthy
       otel-collector:
         condition: service_started
-    # Removed entrypoint section
 
   # logs containers
   loki:
@@ -68,8 +67,24 @@ services:
     image: grafana/loki:latest
     ports:
       - "3100:3100"
+      - "9095:9095"
+    command: -config.file=/etc/loki/local-config.yaml -print-config-stderr
     volumes:
-      - loki-data:/loki
+      - ./observability/loki/loki-config.yaml:/etc/loki/local-config.yaml
+      - ./observability/loki/rules:/loki/rules/fake
+
+  alertmanager:
+    container_name: alertmanager
+    image: prom/alertmanager:latest
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    ports:
+      - "9093:9093"
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    depends_on:
+      - prometheus
 
   promtail:
     container_name: promtail
@@ -130,5 +145,4 @@ services:
 
 volumes:
   data-volume:
-  loki-data:
   grafana-data:
