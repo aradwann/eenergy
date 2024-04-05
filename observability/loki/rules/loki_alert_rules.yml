@@ -2,8 +2,8 @@ groups:
   - name: example
     rules:
       - alert: HelloAlert
-        expr: count_over_time({job="your_job_label"} |= "HOLA" [5m]) > 4
-        for: 1m
+        expr: count_over_time({container_name="/api"} |= "HOLA" [5m]) > 4
+        # for: 1m
         labels:
           severity: critical
         annotations:

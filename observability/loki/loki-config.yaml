@@ -42,4 +42,5 @@ ruler:
       directory: /loki/rules
   rule_path: /tmp/loki/rules-temp
   alertmanager_url: http://alertmanager:9093
+  enable_alertmanager_v2: true
   enable_api: true

@@ -150,6 +150,12 @@ func runGrpcServer(config util.Config, store db.Store, taskDistributor worker.Ta
 	}
 
 	slog.Info(fmt.Sprintf("start gRPC server at %s with TLS", listener.Addr().String()))
+	slog.Info("HOLA 1")
+	slog.Info("HOLA 2")
+	slog.Info("HOLA 3")
+	slog.Info("HOLA 4")
+	slog.Info("HOLA 5")
+
 	if err := grpcServer.Serve(listener); err != nil {
 		handleError("failed to serve", err)
 	}
