@@ -1,23 +1,26 @@
-
-DB_SOURCE = "postgresql://root:secret@localhost:5432/eenergy?sslmode=disable"
-MIGRATIONS_PATH = db/migrations
+# Variables
+DB_NAME=eenergy
+DB_USER=root
+DB_PASS=secret
+DB_HOST=localhost
+DB_PORT=5432
+DB_SOURCE=postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable
+MIGRATIONS_PATH=db/migrations
 CONFIG_PATH=dev-certs/
+DOCKER_CONTAINER_NAME=postgres
 
+# Setup
 init:
 	mkdir -p ${CONFIG_PATH}
 
+# Database Operations
 createdb:
-	docker exec -it postgres15 createdb --username=root --owner=root eenergy
+	docker exec -it ${DOCKER_CONTAINER_NAME} createdb --username=${DB_USER} --owner=${DB_USER} ${DB_NAME}
 
 dropdb:
-	docker exec -it postgres15 dropdb eenergy
+	docker exec -it ${DOCKER_CONTAINER_NAME} dropdb ${DB_NAME}
 
-mock:
-	mockgen -package mockdb -destination db/mock/store.go github.com/aradwann/eenergy/db/store Store
-	mockgen -package mockmail -destination mail/mock/sender.go github.com/aradwann/eenergy/mail EmailSender
-	mockgen -package mockwk -destination worker/mock/distributor.go github.com/aradwann/eenergy/worker TaskDistributor
-	mockgen -package mockwk -destination worker/mock/processor.go github.com/aradwann/eenergy/worker TaskProcessor
-
+# Migration
 migrateup:
 	go run db/scripts/migrate.go
 
@@ -33,15 +36,25 @@ migratedown1:
 createmigration:
 	migrate create -ext sql -dir $(MIGRATIONS_PATH) -seq "$(filter-out $@,$(MAKECMDGOALS))"
 
+# Mocks
+mock:
+	mockgen -package mockdb -destination db/mock/store.go github.com/aradwann/eenergy/db/store Store
+	mockgen -package mockmail -destination mail/mock/sender.go github.com/aradwann/eenergy/mail EmailSender
+	mockgen -package mockwk -destination worker/mock/distributor.go github.com/aradwann/eenergy/worker TaskDistributor
+	mockgen -package mockwk -destination worker/mock/processor.go github.com/aradwann/eenergy/worker TaskProcessor
+
+# Testing
 test: 
 	go test -short -v -cover ./...
 
 testci:
 	go test -short -race -covermode atomic -coverprofile=covprofile $$(go list ./... | grep -v /pb$$)
 
+# Run Server
 server:
 	go run main.go
 
+# Protocol Buffers
 protoc: 
 	rm -f pb/*.go
 	rm -f doc/swagger/*.swagger.json
@@ -51,6 +64,7 @@ protoc:
 	--openapiv2_out=doc/swagger --openapiv2_opt=allow_merge=true,merge_file_name=eenergy \
 	proto/*.proto
 
+# gRPC Client
 evans:
 	evans --host localhost --port 9091 -r repl
 
@@ -76,5 +90,5 @@ gen-cert:
 	mv *.pem *.csr *.crt *.srl *.key ${CONFIG_PATH}
 
 
-.PHONEY: createdb dropdb migrateup migrateup1 migratedown migratedown1 test server protoc evans gen-cert init
+.PHONY: createdb dropdb migrateup migrateup1 migratedown migratedown1 test server protoc evans gen-cert init
 

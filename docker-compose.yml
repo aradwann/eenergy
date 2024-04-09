@@ -1,14 +1,13 @@
 
 services:
   postgres:
-    container_name: postgres
     image: postgis/postgis:16-3.4-alpine
     environment:
-      - POSTGRES_DB=eenergy
-      - POSTGRES_USER=root
-      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:${DB_PORT}"
     volumes:
       - data-volume:/var/lib/postgresql/data
     healthcheck:
@@ -18,7 +17,6 @@ services:
       retries: 5
 
   pgadmin4:
-    container_name: pgadmin4
     image: dpage/pgadmin4
     environment:
       - PGADMIN_DEFAULT_EMAIL=user@domain.com
@@ -27,10 +25,9 @@ services:
       - "80:80"
 
   redis:
-    container_name: redis
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT}:${REDIS_PORT}"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -38,20 +35,18 @@ services:
       retries: 5
 
   api:
-    container_name: api
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - 8080:8080
-      - 9091:9091
+      - ${HTTP_SERVER_PORT}:${HTTP_SERVER_PORT}
+      - ${GRPC_SERVER_PORT}:${GRPC_SERVER_PORT}
     environment:
       - DB_SOURCE=postgresql://root:secret@postgres:5432/eenergy?sslmode=disable
-      - REDIS_ADDRESS=redis:6379
       - OTEL_EXPORTER_OTLP_ENDPOINT
       - OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
       - OTEL_RESOURCE_ATTRIBUTES
-      - OTEL_SERVICE_NAME=eenergy
+      - OTEL_SERVICE_NAME
 
     depends_on:
       postgres:  # Wait for postgres to start
@@ -63,7 +58,6 @@ services:
 
   # logs containers
   loki:
-    container_name: loki
     image: grafana/loki:latest
     ports:
       - "3100:3100"
@@ -74,7 +68,6 @@ services:
       - ./observability/loki/rules:/loki/rules/fake
 
   alertmanager:
-    container_name: alertmanager
     image: prom/alertmanager:latest
     volumes:
       - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
@@ -87,7 +80,6 @@ services:
       - prometheus
 
   promtail:
-    container_name: promtail
     image: grafana/promtail:latest
     volumes:
       - ./promtail-config.yml:/etc/promtail/promtail.yml
@@ -98,7 +90,6 @@ services:
       - loki
 
   grafana:
-    container_name: grafana
     image: grafana/grafana:latest
     ports:
       - "3000:3000"
@@ -109,7 +100,6 @@ services:
   
   # metrics containers 
   prometheus:
-    container_name: prometheus
     image: prom/prometheus:latest
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
@@ -119,7 +109,6 @@ services:
   # traces containes
   # Jaeger
   jaeger:
-    container_name: jaeger
     image: jaegertracing/all-in-one:latest
     ports:
       - "${JAEGER_SERVICE_PORT}"         # Jaeger UI
@@ -128,7 +117,6 @@ services:
       - COLLECTOR_OTLP_ENABLED=true
 
   otel-collector:
-    container_name: otel-collector
     image: otel/opentelemetry-collector-contrib
     volumes:
       - ./otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
