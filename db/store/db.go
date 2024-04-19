@@ -4,9 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"strings"
 )
 
+// DBTX defines the interface for database transactions.
 type DBTX interface {
 	ExecContext(context.Context, string, ...interface{}) (sql.Result, error)
 	PrepareContext(context.Context, string) (*sql.Stmt, error)
@@ -14,48 +16,42 @@ type DBTX interface {
 	QueryRowContext(context.Context, string, ...interface{}) *sql.Row
 }
 
+// New creates a new instance of Queries using the provided database transaction.
 func New(db DBTX) *Queries {
 	return &Queries{db: db}
 }
 
+// Queries provides methods for executing database queries.
 type Queries struct {
 	db DBTX
 }
 
-// type storedProcedureParams struct {
-// 	InParams  []interface{}
-// 	OutParams []interface{}
-// }
-
-// func (q *Queries) callStoredProcedure(ctx context.Context, procedureName string, params storedProcedureParams) *sql.Row {
-// 	sqlStatement := fmt.Sprintf(`CALL %s(%s)`, procedureName, generateParamPlaceholders(len(params.InParams)))
-
-//		return q.db.QueryRowContext(
-//			ctx,
-//			sqlStatement,
-//			params.InParams...,
-//		)
-//	}
+// callStoredFunction executes a stored function and returns a single row result.
 func (q *Queries) callStoredFunction(ctx context.Context, functionName string, params ...interface{}) *sql.Row {
-	// Assuming generateParamPlaceholders generates the placeholders for parameters
 	placeholders := generateParamPlaceholders(len(params))
 
-	// Use SELECT statement to call the stored function
+	// Construct the SQL statement to call the stored function.
 	sqlStatement := fmt.Sprintf(`SELECT * FROM %s(%s)`, functionName, placeholders)
+	slog.Info("PostgreSQL function called",
+		slog.String("function name", functionName),
+		// slog.Any("params", params), // TODO: filter out sensitive info
+		slog.String("SQL statement", sqlStatement),
+	)
 
 	return q.db.QueryRowContext(ctx, sqlStatement, params...)
 }
 
+// callStoredFunctionRows executes a stored function and returns multiple rows result.
 func (q *Queries) callStoredFunctionRows(ctx context.Context, functionName string, params ...interface{}) (*sql.Rows, error) {
-	// Assuming generateParamPlaceholders generates the placeholders for parameters
 	placeholders := generateParamPlaceholders(len(params))
 
-	// Use SELECT statement to call the stored function
+	// Construct the SQL statement to call the stored function.
 	sqlStatement := fmt.Sprintf(`SELECT * FROM %s(%s)`, functionName, placeholders)
 
 	return q.db.QueryContext(ctx, sqlStatement, params...)
 }
 
+// generateParamPlaceholders generates placeholders for SQL parameters.
 func generateParamPlaceholders(count int) string {
 	placeholders := make([]string, count)
 	for i := 1; i <= count; i++ {

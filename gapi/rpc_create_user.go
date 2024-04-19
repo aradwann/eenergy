@@ -2,6 +2,7 @@ package gapi
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	db "github.com/aradwann/eenergy/db/store"
@@ -16,6 +17,7 @@ import (
 )
 
 func (server *Server) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
+	slog.Info("create user RPC", slog.String("username", req.Username))
 	violations := validateCreateUserRequest(req)
 	if violations != nil {
 		return nil, invalidArgumentError(violations)

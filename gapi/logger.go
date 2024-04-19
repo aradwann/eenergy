@@ -3,7 +3,6 @@ package gapi
 import (
 	"context"
 	"net/http"
-	"os"
 	"time"
 
 	"google.golang.org/grpc"
@@ -13,7 +12,7 @@ import (
 	"log/slog"
 )
 
-// GrpcLogger logs gRPC requests and responses.
+// GrpcLogger is a unary server interceptor that logs gRPC requests and responses.
 func GrpcLogger(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 	startTime := time.Now()
 	res, err := handler(ctx, req)
@@ -34,8 +33,8 @@ func GrpcLogger(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo
 
 	slog.LogAttrs(context.Background(),
 		logLevel,
-		"received grpc req",
-		slog.String("protocol", "grpc"),
+		"received gRPC request",
+		slog.String("protocol", "gRPC"),
 		slog.String("method", info.FullMethod),
 		slog.Int("status_code", int(statusCode)),
 		slog.String("status_text", statusCode.String()),
@@ -46,7 +45,7 @@ func GrpcLogger(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo
 	return res, err
 }
 
-// HttpLogger logs HTTP requests and responses.
+// HttpLogger is a middleware that logs HTTP requests and responses.
 func HttpLogger(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		startTime := time.Now()
@@ -68,8 +67,8 @@ func HttpLogger(handler http.Handler) http.Handler {
 
 		slog.LogAttrs(context.Background(),
 			logLevel,
-			"received http req",
-			slog.String("protocol", "http"),
+			"received HTTP request",
+			slog.String("protocol", "HTTP"),
 			slog.String("method", req.Method),
 			slog.String("uri", req.RequestURI),
 			slog.Int("status_code", rec.StatusCode),
@@ -80,7 +79,7 @@ func HttpLogger(handler http.Handler) http.Handler {
 	})
 }
 
-// ResponseRecorder is used to get the status code from the original response writer.
+// ResponseRecorder is used to capture the status code and response body.
 type ResponseRecorder struct {
 	http.ResponseWriter
 	StatusCode int
@@ -97,21 +96,4 @@ func (rec *ResponseRecorder) WriteHeader(statusCode int) {
 func (rec *ResponseRecorder) Write(body []byte) (int, error) {
 	rec.Body = body
 	return rec.ResponseWriter.Write(body)
-}
-
-func NewDevelopmentLoggerHandler() slog.Handler {
-	return slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		AddSource: false,
-		Level:     nil,
-		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
-			if a.Key == slog.TimeKey && len(groups) == 0 {
-				return slog.Attr{}
-			}
-			return a
-		},
-	})
-}
-
-func NewProductionLoggerHandler() slog.Handler {
-	return slog.NewJSONHandler(os.Stdout, nil)
 }

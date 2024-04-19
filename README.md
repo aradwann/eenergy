@@ -43,14 +43,17 @@ To contribute to eEnergy, you will need to set up your development environment w
     - Ensure all required tools are installed.
 
 3. **Generate Certificates For Local Use**
-  - ```bash
+
+- ```bash
       make init
       ```
-  - ```bash
+
+- ```bash
       make gen-cert
       ```
 
 4. **Build and Run Using Docker**
+
     - Build the Docker images:
 
       ```bash
@@ -64,10 +67,11 @@ To contribute to eEnergy, you will need to set up your development environment w
       ```
 
 ### using postman with mTLS enabled
+
 1. add CA pem
 2. add client certificate with crt, key files and localhost:9091 as domain
 
-4. **Access the Application**
+3. **Access the Application**
     - The application and its services are now accessible on your local machine.
 
 ## Contributing
@@ -91,4 +95,4 @@ By contributing to eEnergy, you're helping to create a more sustainable and effi
 - improve logging and configure graphana
 - explore pprof
 - impl nearest energy source endpoint (input: current location, output: nearest energy source details)
-- watch kubernetes section and understand it -->
+- watch kubernetes and docker swarm section and understand it -->

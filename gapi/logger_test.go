@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"sync"
 	"testing"
 
@@ -16,147 +17,98 @@ import (
 	"google.golang.org/grpc"
 )
 
+// Helper function to setup and teardown log capture.
+func withCapturedLogs(t *testing.T, fn func()) []string {
+	originalOutput := log.Writer()
+	defer log.SetOutput(originalOutput)
+
+	r, w, err := os.Pipe()
+	require.NoError(t, err)
+	log.SetOutput(w)
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	var buf bytes.Buffer
+	go func() {
+		defer wg.Done()
+		defer r.Close()
+		if _, err := io.Copy(&buf, r); err != nil {
+			t.Errorf("Error capturing logs: %v", err)
+		}
+	}()
+
+	fn()
+
+	require.NoError(t, w.Close())
+	wg.Wait()
+
+	return strings.Split(buf.String(), "\n")
+}
+
 func TestGrpcLogger(t *testing.T) {
-	// Mock gRPC handler function
 	mockHandler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return nil, nil
 	}
+	mockInfo := &grpc.UnaryServerInfo{FullMethod: "/example.Service/Method"}
 
-	// Mock gRPC UnaryServerInfo
-	mockInfo := &grpc.UnaryServerInfo{
-		FullMethod: "/example.Service/Method",
-	}
-
-	// Execute GrpcLogger
-	_, err := GrpcLogger(context.Background(), nil, mockInfo, mockHandler)
-	require.NoError(t, err)
-
-	// Capture logs during the test
-	logs := make([]string, 0)
-	captureLogs(func() {
-		// Execute GrpcLogger
+	logs := withCapturedLogs(t, func() {
 		_, err := GrpcLogger(context.Background(), nil, mockInfo, mockHandler)
 		require.NoError(t, err)
-
-	}, func(log string) {
-		logs = append(logs, log)
 	})
 
-	// Verify the log output
-	assert.Contains(t, logs[0], "received grpc req")
-	assert.Contains(t, logs[0], "protocol=grpc")
+	assert.Contains(t, logs[0], "received gRPC request")
+	assert.Contains(t, logs[0], "protocol=gRPC")
 	assert.Contains(t, logs[0], "method=/example.Service/Method")
 	assert.Contains(t, logs[0], "status_code=0") // The default value for codes.OK
 	assert.Contains(t, logs[0], "status_text=OK")
 	assert.Contains(t, logs[0], "duration=")
-
 }
 
 func TestHttpLogger(t *testing.T) {
-	// Mock HTTP handler function
 	mockHandler := http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusOK)
 		_, err := res.Write([]byte("OK"))
 		require.NoError(t, err)
 	})
-
-	// Create a test HTTP request
 	req := httptest.NewRequest("GET", "/test", nil)
 	rec := httptest.NewRecorder()
 
-	// Capture logs during the test
-	logs := make([]string, 0)
-	captureLogs(func() {
-		// Execute HttpLogger
+	logs := withCapturedLogs(t, func() {
 		HttpLogger(mockHandler).ServeHTTP(rec, req)
-	}, func(log string) {
-		logs = append(logs, log)
 	})
 
-	// Verify the log output
-	assert.Contains(t, logs[0], "received http req")
+	assert.Contains(t, logs[0], "received HTTP request")
 	assert.Contains(t, logs[0], "status_code=200")
 	assert.Contains(t, logs[0], "status_text=OK")
 }
 
 func TestHttpLoggerErr(t *testing.T) {
-	// Mock HTTP handler function
 	mockHandler := http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusInternalServerError)
 		_, err := res.Write([]byte("Error"))
 		require.NoError(t, err)
-
 	})
-
-	// Create a test HTTP request
 	req := httptest.NewRequest("GET", "/test", nil)
 	rec := httptest.NewRecorder()
 
-	// Capture logs during the test
-	logs := make([]string, 0)
-	captureLogs(func() {
-		// Execute HttpLogger
+	logs := withCapturedLogs(t, func() {
 		HttpLogger(mockHandler).ServeHTTP(rec, req)
-	}, func(log string) {
-		logs = append(logs, log)
 	})
 
-	// Verify the log output using substring matching
-	assert.Contains(t, logs[0], "received http req")
+	assert.Contains(t, logs[0], "received HTTP request")
 	assert.Contains(t, logs[0], "status_code=500")
 	assert.Contains(t, logs[0], "status_text=\"Internal Server Error\"")
 	assert.Contains(t, logs[0], "body=Error")
 }
 
 func TestResponseRecorder(t *testing.T) {
-	// Mock ResponseWriter
 	mockResponseWriter := httptest.NewRecorder()
+	rec := &ResponseRecorder{ResponseWriter: mockResponseWriter, StatusCode: http.StatusOK}
 
-	// Create a ResponseRecorder
-	rec := &ResponseRecorder{
-		ResponseWriter: mockResponseWriter,
-		StatusCode:     http.StatusOK,
-	}
-
-	// Write some data to ResponseRecorder
 	_, err := rec.Write([]byte("Test Body"))
 	require.NoError(t, err)
 
-	// Verify the StatusCode
 	require.Equal(t, rec.StatusCode, http.StatusOK)
-
-	// Verify the captured body
 	require.Equal(t, string(rec.Body), "Test Body")
-
-}
-
-// captureLogs captures logs produced during the execution of a function.
-func captureLogs(fn func(), logCallback func(string)) {
-	originalOutput := log.Writer()
-	defer func() { log.SetOutput(originalOutput) }()
-
-	r, w, err := os.Pipe()
-	if err != nil {
-		panic(err)
-	}
-	log.SetOutput(w)
-
-	var wg sync.WaitGroup
-	wg.Add(1)
-
-	go func() error {
-		defer wg.Done()
-		var buf bytes.Buffer
-		_, err := io.Copy(&buf, r)
-		if err != nil {
-			return err
-		}
-		logCallback(buf.String())
-		return nil
-	}()
-
-	fn()
-
-	w.Close()
-	wg.Wait()
 }

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+	"log/slog"
 )
 
 type CreateUserParams struct {
@@ -16,6 +17,7 @@ type CreateUserParams struct {
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
 	var user User
+	slog.Info("CreateUser", slog.String("username", arg.Username))
 	row := q.callStoredFunction(ctx, "create_user",
 		arg.Username,
 		arg.HashedPassword,
@@ -24,6 +26,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 
 	err := scanUserFromRow(row, &user)
 	if err != nil {
+		slog.Error("error scaning the created user", slog.String("error message", err.Error()))
 		return user, err
 	}
 	return user, nil
