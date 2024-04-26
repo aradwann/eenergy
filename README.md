@@ -46,25 +46,25 @@ To contribute to eEnergy, you will need to set up your development environment w
 
 - ```bash
       make init
-      ```
+  ```
 
 - ```bash
       make gen-cert
-      ```
+  ```
 
-4. **Build and Run Using Docker**
+4.**Build and Run Using Docker**
 
-    - Build the Docker images:
+- Build the Docker images:
 
-      ```bash
-      docker compose build
-      ```
+    ```bash
+    docker compose build
+    ```
 
-    - Run the containers:
+- Run the containers:
 
-      ```bash
-      docker compose up
-      ```
+    ```bash
+    docker compose up
+    ```
 
 ### using postman with mTLS enabled
 
@@ -90,9 +90,11 @@ eEnergy is open-sourced under the [MIT license](LICENSE).
 
 By contributing to eEnergy, you're helping to create a more sustainable and efficient future for energy consumption and distribution. Let's make a difference together!
 
-<!-- TODO : 
-- add account balance endpoint for admin only (or make it smart meter responsibility)
-- improve logging and configure graphana
-- explore pprof
-- impl nearest energy source endpoint (input: current location, output: nearest energy source details)
-- watch kubernetes and docker swarm section and understand it -->
+### To-Do List
+
+- [ ] Add account balance endpoint for admin only (or make it smart meter responsibility)
+- [ ] Improve logging and configure Grafana
+- [ ] Implement trace to log integration
+- [ ] Explore pprof for performance profiling
+- [ ] Implement nearest energy source endpoint (input: current location, output: nearest available energy source details)
+- [ ] Kubernetes vs Docker Swarm

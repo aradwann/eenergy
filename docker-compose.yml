@@ -64,13 +64,13 @@ services:
       - "9095:9095"
     command: -config.file=/etc/loki/local-config.yaml -print-config-stderr
     volumes:
-      - ./observability/loki/loki-config.yaml:/etc/loki/local-config.yaml
-      - ./observability/loki/rules:/loki/rules/fake
+      - ./cfg/loki/loki-config.yaml:/etc/loki/local-config.yaml
+      - ./cfg/loki/rules:/loki/rules/fake
 
   alertmanager:
     image: prom/alertmanager:latest
     volumes:
-      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - ./cfg/alertmanager.yml:/etc/alertmanager/alertmanager.yml
     ports:
       - "9093:9093"
     command:
@@ -82,7 +82,7 @@ services:
   promtail:
     image: grafana/promtail:latest
     volumes:
-      - ./promtail-config.yml:/etc/promtail/promtail.yml
+      - ./cfg/promtail-config.yml:/etc/promtail/promtail.yml
       - /var/log:/var/log
       - /var/run/docker.sock:/var/run/docker.sock
     command: -config.file=/etc/promtail/promtail.yml
@@ -95,14 +95,19 @@ services:
       - "3000:3000"
     volumes:
       - grafana-data:/var/lib/grafana
+      - ./cfg/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
     depends_on:
       - loki
+      - prometheus
+      - jaeger 
   
   # metrics containers 
   prometheus:
     image: prom/prometheus:latest
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./cfg/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./cfg/prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml
+
     ports:
       - "${PROMETHEUS_SERVICE_PORT}:${PROMETHEUS_SERVICE_PORT}"
 
@@ -119,7 +124,7 @@ services:
   otel-collector:
     image: otel/opentelemetry-collector-contrib
     volumes:
-      - ./otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
+      - ./cfg/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
     ports:
       - 1888:1888 # pprof extension
       - 8888:8888 # Prometheus metrics exposed by the Collector
