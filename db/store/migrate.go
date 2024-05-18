@@ -80,8 +80,11 @@ func runUnversionedMigrations(db *sql.DB, migrationDir string) error {
 
 	// Execute each SQL file
 	for _, file := range sqlFiles {
+		// Skip files that end with "_test.sql"
+		if strings.HasSuffix(file, "_test.sql") {
+			continue
+		}
 		// log.Printf("Executing SQL file: %s", file)
-
 		contents, err := os.ReadFile(file)
 		if err != nil {
 			return fmt.Errorf("error reading SQL file %s: %w", file, err)
