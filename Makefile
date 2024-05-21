@@ -39,7 +39,7 @@ createmigration:
 
 # Mocks
 mock:
-	mockgen -package mockdb -destination db/mock/store.go github.com/aradwann/eenergy/db/store Store
+	mockgen -package mockdb -destination repository/mock/store.go github.com/aradwann/eenergy/repository/store Store
 	mockgen -package mockmail -destination mail/mock/sender.go github.com/aradwann/eenergy/mail EmailSender
 	mockgen -package mockwk -destination worker/mock/distributor.go github.com/aradwann/eenergy/worker TaskDistributor
 	mockgen -package mockwk -destination worker/mock/processor.go github.com/aradwann/eenergy/worker TaskProcessor
