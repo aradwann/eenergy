@@ -12,7 +12,7 @@ import (
 
 type CreateSessionParams struct {
 	ID           uuid.UUID `json:"id"`
-	Username     string    `json:"username"`
+	UserID       int64     `json:"user_id"`
 	RefreshToken string    `json:"refresh_token"`
 	UserAgent    string    `json:"user_agent"`
 	ClientIp     string    `json:"client_ip"`
@@ -25,7 +25,7 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (S
 	var session Session
 	row := q.callStoredFunction(ctx, "create_session",
 		arg.ID,
-		arg.Username,
+		arg.UserID,
 		arg.RefreshToken,
 		arg.UserAgent,
 		arg.ClientIp,
@@ -55,7 +55,7 @@ func scanSessionFromRow(row *sql.Row, session *Session) error {
 
 	err := row.Scan(
 		&session.ID,
-		&session.Username,
+		&session.UserID,
 		&session.RefreshToken,
 		&session.UserAgent,
 		&session.ClientIp,

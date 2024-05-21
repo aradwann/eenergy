@@ -14,16 +14,16 @@ func createRandomAccount(t *testing.T) Account {
 	user := createRandomUser(t)
 
 	arg := CreateAccountParams{
-		Owner:   user.Username,
-		Balance: util.RandomAmount(),
-		Unit:    util.RandomUnit(),
+		OwnerUserID: user.ID,
+		Balance:     util.RandomAmount(),
+		Unit:        util.RandomUnit(),
 	}
 
 	account, err := testStore.CreateAccount(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, account)
 
-	require.Equal(t, arg.Owner, account.Owner)
+	require.Equal(t, arg.OwnerUserID, account.OwnerUserID)
 	require.Equal(t, arg.Balance, account.Balance)
 	require.Equal(t, arg.Unit, account.Unit)
 
@@ -44,7 +44,7 @@ func TestGetAccount(t *testing.T) {
 	require.NotEmpty(t, account2)
 
 	require.Equal(t, account1.ID, account2.ID)
-	require.Equal(t, account1.Owner, account2.Owner)
+	require.Equal(t, account1.OwnerUserID, account2.OwnerUserID)
 	require.Equal(t, account1.Balance, account2.Balance)
 	require.Equal(t, account1.Unit, account2.Unit)
 	require.WithinDuration(t, account1.CreatedAt, account2.CreatedAt, time.Second)
@@ -63,7 +63,7 @@ func TestUpdateAccount(t *testing.T) {
 	require.NotEmpty(t, account2)
 
 	require.Equal(t, account1.ID, account2.ID)
-	require.Equal(t, account1.Owner, account2.Owner)
+	require.Equal(t, account1.OwnerUserID, account2.OwnerUserID)
 	require.Equal(t, arg.Balance, account2.Balance)
 	require.Equal(t, account1.Unit, account2.Unit)
 	require.WithinDuration(t, account1.CreatedAt, account2.CreatedAt, time.Second)
@@ -87,9 +87,9 @@ func TestListAccounts(t *testing.T) {
 	}
 
 	arg := ListAccountsParams{
-		Owner:  lastAccount.Owner,
-		Limit:  5,
-		Offset: 0,
+		OwnerUserID: lastAccount.OwnerUserID,
+		Limit:       5,
+		Offset:      0,
 	}
 
 	accounts, err := testStore.ListAccounts(context.Background(), arg)
@@ -98,7 +98,7 @@ func TestListAccounts(t *testing.T) {
 
 	for _, account := range accounts {
 		require.NotEmpty(t, account)
-		require.Equal(t, lastAccount.Owner, account.Owner)
+		require.Equal(t, lastAccount.OwnerUserID, account.OwnerUserID)
 	}
 }
 
@@ -115,7 +115,7 @@ func TestAddAccountBalance(t *testing.T) {
 	require.NotEmpty(t, updatedAccount)
 
 	require.Equal(t, account1.ID, updatedAccount.ID)
-	require.Equal(t, account1.Owner, updatedAccount.Owner)
+	require.Equal(t, account1.OwnerUserID, updatedAccount.OwnerUserID)
 	require.Equal(t, account1.Balance+amount, updatedAccount.Balance)
 	require.Equal(t, account1.Unit, updatedAccount.Unit)
 	require.WithinDuration(t, account1.CreatedAt, updatedAccount.CreatedAt, time.Second)

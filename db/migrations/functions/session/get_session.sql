@@ -4,7 +4,7 @@ CREATE OR REPLACE FUNCTION get_session(
 )
 RETURNS TABLE (
     id UUID,
-    username VARCHAR,
+    user_id bigint,
     refresh_token VARCHAR,
     user_agent VARCHAR,
     client_ip VARCHAR,
@@ -16,7 +16,7 @@ BEGIN
     RETURN QUERY
     SELECT
         sessions.id,
-        sessions.username,
+        sessions.user_id,
         sessions.refresh_token,
         sessions.user_agent,
         sessions.client_ip,

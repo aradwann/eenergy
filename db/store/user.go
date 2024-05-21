@@ -32,9 +32,9 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return user, nil
 }
 
-func (q *Queries) GetUser(ctx context.Context, username string) (User, error) {
+func (q *Queries) GetUser(ctx context.Context, user_id int64) (User, error) {
 	var user User
-	row := q.callStoredFunction(ctx, "get_user", username)
+	row := q.callStoredFunction(ctx, "get_user", user_id)
 	err := scanUserFromRow(row, &user)
 	if err != nil {
 		return user, err
@@ -43,17 +43,19 @@ func (q *Queries) GetUser(ctx context.Context, username string) (User, error) {
 }
 
 type UpdateUserParams struct {
+	ID                int64          `json:"id"`
 	HashedPassword    sql.NullString `json:"hashed_password"`
 	PasswordChangedAt sql.NullTime   `json:"password_changed_at"`
 	FullName          sql.NullString `json:"fullname"`
 	Email             sql.NullString `json:"email"`
-	Username          string         `json:"username"`
+	Username          sql.NullString `json:"username"`
 	IsEmailVerified   sql.NullBool   `json:"is_email_verified"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
 	var user User
 	params := []interface{}{
+		arg.ID,
 		arg.Username,
 		arg.HashedPassword,
 		arg.PasswordChangedAt,
@@ -74,6 +76,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 
 func scanUserFromRow(row *sql.Row, user *User) error {
 	err := row.Scan(
+		&user.ID,
 		&user.Username,
 		&user.HashedPassword,
 		&user.FullName,
@@ -81,7 +84,7 @@ func scanUserFromRow(row *sql.Row, user *User) error {
 		&user.PasswordChangedAt,
 		&user.CreatedAt,
 		&user.IsEmailVerified,
-		&user.Role,
+		&user.RoleID,
 	)
 
 	// Check for errors after scanning

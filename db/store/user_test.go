@@ -26,6 +26,7 @@ func createRandomUser(t *testing.T) User {
 	require.NoError(t, err)
 	require.NotEmpty(t, user)
 
+	require.NotZero(t, user.ID)
 	require.Equal(t, arg.Username, user.Username)
 	require.Equal(t, arg.HashedPassword, user.HashedPassword)
 	require.Equal(t, arg.FullName, user.FullName)
@@ -43,10 +44,11 @@ func TestCreateUser(t *testing.T) {
 
 func TestGetUser(t *testing.T) {
 	user1 := createRandomUser(t)
-	user2, err := testStore.GetUser(context.Background(), user1.Username)
+	user2, err := testStore.GetUser(context.Background(), user1.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, user2)
 
+	require.Equal(t, user1.ID, user2.ID)
 	require.Equal(t, user1.Username, user2.Username)
 	require.Equal(t, user1.HashedPassword, user2.HashedPassword)
 	require.Equal(t, user1.FullName, user2.FullName)
@@ -60,7 +62,7 @@ func TestUpdateUserOnlyFullName(t *testing.T) {
 
 	newFullName := util.RandomOwner()
 	_, err := testStore.UpdateUser(context.Background(), UpdateUserParams{
-		Username: oldUser.Username,
+		ID: oldUser.ID,
 		FullName: sql.NullString{
 			String: newFullName,
 			Valid:  true,
@@ -68,7 +70,7 @@ func TestUpdateUserOnlyFullName(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	updatedUser, err := testStore.GetUser(context.Background(), oldUser.Username)
+	updatedUser, err := testStore.GetUser(context.Background(), oldUser.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, updatedUser)
 
@@ -83,7 +85,7 @@ func TestUpdateUserOnlyEmail(t *testing.T) {
 
 	newEmail := util.RandomEmail()
 	_, err := testStore.UpdateUser(context.Background(), UpdateUserParams{
-		Username: oldUser.Username,
+		ID: oldUser.ID,
 		Email: sql.NullString{
 			String: newEmail,
 			Valid:  true,
@@ -91,7 +93,7 @@ func TestUpdateUserOnlyEmail(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	updatedUser, err := testStore.GetUser(context.Background(), oldUser.Username)
+	updatedUser, err := testStore.GetUser(context.Background(), oldUser.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, updatedUser)
 
@@ -109,7 +111,7 @@ func TestUpdateUserOnlyPassword(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = testStore.UpdateUser(context.Background(), UpdateUserParams{
-		Username: oldUser.Username,
+		ID: oldUser.ID,
 		HashedPassword: sql.NullString{
 			String: newHashedPassword,
 			Valid:  true,
@@ -117,7 +119,7 @@ func TestUpdateUserOnlyPassword(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	updatedUser, err := testStore.GetUser(context.Background(), oldUser.Username)
+	updatedUser, err := testStore.GetUser(context.Background(), oldUser.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, updatedUser)
 
@@ -138,7 +140,7 @@ func TestUpdateUserAllFields(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = testStore.UpdateUser(context.Background(), UpdateUserParams{
-		Username: oldUser.Username,
+		ID: oldUser.ID,
 		HashedPassword: sql.NullString{
 			String: newHashedPassword,
 			Valid:  true,
@@ -154,7 +156,7 @@ func TestUpdateUserAllFields(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	updatedUser, err := testStore.GetUser(context.Background(), oldUser.Username)
+	updatedUser, err := testStore.GetUser(context.Background(), oldUser.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, updatedUser)
 

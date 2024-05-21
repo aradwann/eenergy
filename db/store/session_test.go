@@ -15,7 +15,7 @@ func createRandomSession(t *testing.T) Session {
 	x := uuid.New()
 	arg := CreateSessionParams{
 		ID:           x,
-		Username:     user.Username,
+		UserID:       user.ID,
 		RefreshToken: "",
 		UserAgent:    "",
 		ClientIp:     "",
@@ -27,7 +27,7 @@ func createRandomSession(t *testing.T) Session {
 	require.NoError(t, err)
 	require.NotEmpty(t, user)
 
-	require.Equal(t, arg.Username, session.Username)
+	require.Equal(t, arg.UserID, session.UserID)
 	require.Equal(t, arg.RefreshToken, session.RefreshToken)
 	require.Equal(t, arg.UserAgent, session.UserAgent)
 	require.Equal(t, arg.ClientIp, session.ClientIp)
@@ -51,7 +51,7 @@ func TestGetSession(t *testing.T) {
 	require.NotEmpty(t, session2)
 
 	require.Equal(t, session1.ID, session2.ID)
-	require.Equal(t, session1.Username, session2.Username)
+	require.Equal(t, session1.UserID, session2.UserID)
 	require.Equal(t, session1.RefreshToken, session2.RefreshToken)
 	require.Equal(t, session1.UserAgent, session2.UserAgent)
 	require.Equal(t, session1.ClientIp, session2.ClientIp)

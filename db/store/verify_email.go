@@ -8,7 +8,7 @@ import (
 )
 
 type CreateVerifyEmail struct {
-	Username   string `json:"username"`
+	UserID     int64  `json:"user_id"`
 	Email      string `json:"email"`
 	SecretCode string `json:"secret_code"`
 }
@@ -16,7 +16,7 @@ type CreateVerifyEmail struct {
 func (q *Queries) CreateVerifyEmail(ctx context.Context, arg CreateVerifyEmail) (VerifyEmail, error) {
 	var verifyEmail VerifyEmail
 	row := q.callStoredFunction(ctx, "create_verify_email",
-		arg.Username,
+		arg.UserID,
 		arg.Email,
 		arg.SecretCode,
 	)
@@ -53,7 +53,7 @@ func (q *Queries) UpdatVerifyEmail(ctx context.Context, arg UpdatVerifyEmailPara
 func scanVerifyEmailFromRow(row *sql.Row, verifyEmail *VerifyEmail) error {
 	err := row.Scan(
 		&verifyEmail.ID,
-		&verifyEmail.Username,
+		&verifyEmail.UserID,
 		&verifyEmail.Email,
 		&verifyEmail.SecretCode,
 		&verifyEmail.IsUsed,

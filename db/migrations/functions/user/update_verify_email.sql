@@ -5,7 +5,7 @@ CREATE OR REPLACE FUNCTION update_verify_email(
 )
 RETURNS TABLE (
     id bigint,
-    username VARCHAR,
+    user_id bigint,
     email VARCHAR,
     secret_code VARCHAR,
     is_used BOOLEAN,
@@ -23,7 +23,7 @@ BEGIN
     AND verify_emails.expired_at > now()
     RETURNING
         verify_emails.id,
-        verify_emails.username,
+        verify_emails.user_id,
         verify_emails.email,
         verify_emails.secret_code,
         verify_emails.is_used,

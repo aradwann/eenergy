@@ -7,11 +7,11 @@ import (
 )
 
 type Account struct {
-	ID        int64     `json:"id"`
-	Owner     string    `json:"owner"`
-	Balance   int64     `json:"balance"`
-	Unit      string    `json:"unit"`
-	CreatedAt time.Time `json:"created_at"`
+	ID          int64     `json:"id"`
+	OwnerUserID int64     `json:"owner_user_id"`
+	Balance     int64     `json:"balance"`
+	Unit        string    `json:"unit"`
+	CreatedAt   time.Time `json:"created_at"`
 }
 
 type Entry struct {
@@ -24,7 +24,7 @@ type Entry struct {
 
 type Session struct {
 	ID           uuid.UUID `json:"id"`
-	Username     string    `json:"username"`
+	UserID       int64     `json:"user_id"`
 	RefreshToken string    `json:"refresh_token"`
 	UserAgent    string    `json:"user_agent"`
 	ClientIp     string    `json:"client_ip"`
@@ -43,6 +43,7 @@ type Transfer struct {
 }
 
 type User struct {
+	ID                int64     `json:"id"`
 	Username          string    `json:"username"`
 	HashedPassword    string    `json:"hashed_password"`
 	FullName          string    `json:"full_name"`
@@ -50,12 +51,12 @@ type User struct {
 	PasswordChangedAt time.Time `json:"password_changed_at"`
 	CreatedAt         time.Time `json:"created_at"`
 	IsEmailVerified   bool      `json:"is_email_verified"`
-	Role              string    `json:"role"`
+	RoleID            int64     `json:"role_id"`
 }
 
 type VerifyEmail struct {
 	ID         int64     `json:"id"`
-	Username   string    `json:"username"`
+	UserID     int64     `json:"user_id"`
 	Email      string    `json:"email"`
 	SecretCode string    `json:"secret_code"`
 	IsUsed     bool      `json:"is_used"`

@@ -1,6 +1,6 @@
 -- Define roles table
 CREATE TABLE roles (
-    role_id BIGSERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     role_name VARCHAR NOT NULL UNIQUE
 );
 
@@ -8,7 +8,7 @@ INSERT INTO roles (role_name) VALUES ('admin'), ('user'), ('moderator');
 
 -- Define users table with bigint serial primary key
 CREATE TABLE users (
-    user_id BIGSERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     username VARCHAR UNIQUE NOT NULL,
     hashed_password VARCHAR NOT NULL,
     fullname VARCHAR NOT NULL,
@@ -22,7 +22,7 @@ CREATE TABLE users (
 -- Define accounts table to track user balances
 CREATE TABLE accounts (
     id BIGSERIAL PRIMARY KEY,
-    owner_user_id BIGINT REFERENCES users(user_id) ON DELETE CASCADE,
+    owner_user_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
     balance BIGINT NOT NULL,
     unit VARCHAR NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -49,7 +49,7 @@ CREATE TABLE transfers (
 -- Define sessions table to manage user sessions
 CREATE TABLE sessions (
     id UUID PRIMARY KEY,
-    user_id BIGINT REFERENCES users(user_id) ON DELETE CASCADE,
+    user_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
     refresh_token VARCHAR NOT NULL,
     user_agent VARCHAR NOT NULL,
     client_ip VARCHAR NOT NULL,
@@ -61,7 +61,7 @@ CREATE TABLE sessions (
 -- Define verify_emails table to manage email verification requests
 CREATE TABLE verify_emails (
     id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT REFERENCES users(user_id) ON DELETE CASCADE,
+    user_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
     email VARCHAR NOT NULL,
     secret_code VARCHAR NOT NULL,
     is_used BOOLEAN NOT NULL DEFAULT false,
@@ -84,7 +84,7 @@ CREATE TABLE resources (
     location_id BIGINT REFERENCES locations(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     notes TEXT, 
-    owner_user_id BIGINT REFERENCES users(user_id) ON DELETE SET NULL,
+    owner_user_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 

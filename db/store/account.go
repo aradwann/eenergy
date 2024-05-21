@@ -26,15 +26,15 @@ func (q *Queries) AddAccountBalance(ctx context.Context, arg AddAccountBalancePa
 }
 
 type CreateAccountParams struct {
-	Owner   string `json:"owner"`
-	Balance int64  `json:"balance"`
-	Unit    string `json:"unit"`
+	OwnerUserID int64  `json:"owner_user_id"`
+	Balance     int64  `json:"balance"`
+	Unit        string `json:"unit"`
 }
 
 func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error) {
 	var acc Account
 	row := q.callStoredFunction(ctx, "create_account",
-		arg.Owner,
+		arg.OwnerUserID,
 		arg.Balance,
 		arg.Unit,
 	)
@@ -75,13 +75,13 @@ func (q *Queries) GetAccount(ctx context.Context, id int64) (Account, error) {
 }
 
 type ListAccountsParams struct {
-	Owner  string `json:"owner"`
-	Limit  int32  `json:"limit"`
-	Offset int32  `json:"offset"`
+	OwnerUserID int64 `json:"owner_user_id"`
+	Limit       int32 `json:"limit"`
+	Offset      int32 `json:"offset"`
 }
 
 func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]Account, error) {
-	rows, err := q.callStoredFunctionRows(ctx, "list_accounts", arg.Owner, arg.Limit, arg.Offset)
+	rows, err := q.callStoredFunctionRows(ctx, "list_accounts", arg.OwnerUserID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) (A
 func scanAccount(scanner interface {
 	Scan(dest ...interface{}) error
 }, acc *Account) error {
-	err := scanner.Scan(&acc.ID, &acc.Owner, &acc.Balance, &acc.Unit, &acc.CreatedAt)
+	err := scanner.Scan(&acc.ID, &acc.OwnerUserID, &acc.Balance, &acc.Unit, &acc.CreatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			// Handle the case where no rows are found.

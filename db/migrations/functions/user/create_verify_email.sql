@@ -1,12 +1,12 @@
 DROP FUNCTION IF EXISTS create_verify_email;
 CREATE OR REPLACE FUNCTION create_verify_email(
-    p_username VARCHAR,
+    p_user_id bigint,
     p_email VARCHAR,
     p_secret_code VARCHAR
 )
 RETURNS TABLE (
     id bigint,
-    username VARCHAR,
+    user_id bigint,
     email VARCHAR,
     secret_code VARCHAR,
     is_used BOOLEAN,
@@ -15,11 +15,11 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    INSERT INTO verify_emails (username, email, secret_code)
-    VALUES (p_username, p_email, p_secret_code)
+    INSERT INTO verify_emails (user_id, email, secret_code)
+    VALUES (p_user_id, p_email, p_secret_code)
     RETURNING
         verify_emails.id,
-        verify_emails.username,
+        verify_emails.user_id,
         verify_emails.email,
         verify_emails.secret_code,
         verify_emails.is_used,
