@@ -38,7 +38,7 @@ createmigration:
 	migrate create -ext sql -dir $(MIGRATIONS_PATH) -seq "$(filter-out $@,$(MAKECMDGOALS))"
 
 # Mocks
-mock:
+mock: # TODO: edit to comply with the new architecture
 	mockgen -package mockdb -destination repository/mock/store.go github.com/aradwann/eenergy/repository/store Store
 	mockgen -package mockmail -destination mail/mock/sender.go github.com/aradwann/eenergy/mail EmailSender
 	mockgen -package mockwk -destination worker/mock/distributor.go github.com/aradwann/eenergy/worker TaskDistributor
@@ -57,13 +57,11 @@ server:
 
 # Protocol Buffers
 protoc: 
-	rm -f pb/*.go
-	rm -f assets/doc/swagger/*.swagger.json
-	protoc --proto_path=proto --go_out=pb --go_opt=paths=source_relative \
-	--go-grpc_out=pb --go-grpc_opt=paths=source_relative \
-	--grpc-gateway_out=pb --grpc-gateway_opt=paths=source_relative \
+	protoc --proto_path=api/grpc/v1/proto --go_out=api/grpc/v1/pb --go_opt=paths=source_relative \
+	--go-grpc_out=api/grpc/v1/pb --go-grpc_opt=paths=source_relative \
+	--grpc-gateway_out=api/grpc/v1/pb --grpc-gateway_opt=paths=source_relative \
 	--openapiv2_out=assets/doc/swagger --openapiv2_opt=allow_merge=true,merge_file_name=eenergy \
-	proto/*.proto
+	api/grpc/v1/proto/*.proto
 
 # gRPC Client
 evans:

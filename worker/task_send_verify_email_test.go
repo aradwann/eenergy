@@ -1,94 +1,80 @@
 package worker
 
-import (
-	"context"
-	"fmt"
-	"testing"
+// func randomUser(t *testing.T) (user db.User, password string) {
+// 	password = util.RandomString(6)
+// 	hashedPassword, err := util.HashPassword(password)
+// 	require.NoError(t, err)
 
-	mockmail "github.com/aradwann/eenergy/mail/mock"
-	mockdb "github.com/aradwann/eenergy/repository/mock"
-	db "github.com/aradwann/eenergy/repository/store"
-	"github.com/aradwann/eenergy/util"
-	"github.com/hibiken/asynq"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/mock/gomock"
-)
+// 	user = db.User{
+// 		Username:       util.RandomOwner(),
+// 		HashedPassword: hashedPassword,
+// 		FullName:       util.RandomOwner(),
+// 		Email:          util.RandomEmail(),
+// 		Role:           util.UserRole,
+// 	}
+// 	return
+// }
 
-func randomUser(t *testing.T) (user db.User, password string) {
-	password = util.RandomString(6)
-	hashedPassword, err := util.HashPassword(password)
-	require.NoError(t, err)
+// func TestProcessTaskSendVerifyEmail(t *testing.T) {
 
-	user = db.User{
-		Username:       util.RandomOwner(),
-		HashedPassword: hashedPassword,
-		FullName:       util.RandomOwner(),
-		Email:          util.RandomEmail(),
-		Role:           util.UserRole,
-	}
-	return
-}
+// 	user, _ := randomUser(t)
 
-func TestProcessTaskSendVerifyEmail(t *testing.T) {
+// 	testCases := []struct {
+// 		name       string
+// 		task       *asynq.Task
+// 		buildStubs func(store *mockdb.MockStore, mailer *mockmail.MockEmailSender)
+// 	}{
+// 		{
+// 			name: "OK",
+// 			task: asynq.NewTask(TaskSendVerifyEmail, []byte(fmt.Sprintf(`{"username":"%s"}`, user.Username))),
+// 			buildStubs: func(store *mockdb.MockStore, mailer *mockmail.MockEmailSender) {
 
-	user, _ := randomUser(t)
+// 				store.EXPECT().
+// 					GetUser(gomock.Any(), gomock.Eq(user.Username)).
+// 					Times(1).
+// 					Return(user, nil)
+// 				// Use a matcher for dynamic secret code
+// 				store.EXPECT().
+// 					CreateVerifyEmail(gomock.Any(), gomock.Any()).
+// 					DoAndReturn(func(ctx context.Context, cve db.CreateVerifyEmail) (db.VerifyEmail, error) {
+// 						// Optionally, add more assertions here if needed to check the contents of cve
+// 						require.Equal(t, cve.Email, user.Email)
+// 						require.Equal(t, cve.Username, user.Username)
+// 						return db.VerifyEmail{ID: 1, SecretCode: cve.SecretCode}, nil
+// 					}).
+// 					Times(1)
 
-	testCases := []struct {
-		name       string
-		task       *asynq.Task
-		buildStubs func(store *mockdb.MockStore, mailer *mockmail.MockEmailSender)
-	}{
-		{
-			name: "OK",
-			task: asynq.NewTask(TaskSendVerifyEmail, []byte(fmt.Sprintf(`{"username":"%s"}`, user.Username))),
-			buildStubs: func(store *mockdb.MockStore, mailer *mockmail.MockEmailSender) {
+// 				mailer.EXPECT().
+// 					SendEmail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+// 					Times(1).
+// 					Return(nil)
+// 			},
+// 		},
+// 	}
 
-				store.EXPECT().
-					GetUser(gomock.Any(), gomock.Eq(user.Username)).
-					Times(1).
-					Return(user, nil)
-				// Use a matcher for dynamic secret code
-				store.EXPECT().
-					CreateVerifyEmail(gomock.Any(), gomock.Any()).
-					DoAndReturn(func(ctx context.Context, cve db.CreateVerifyEmail) (db.VerifyEmail, error) {
-						// Optionally, add more assertions here if needed to check the contents of cve
-						require.Equal(t, cve.Email, user.Email)
-						require.Equal(t, cve.Username, user.Username)
-						return db.VerifyEmail{ID: 1, SecretCode: cve.SecretCode}, nil
-					}).
-					Times(1)
+// 	for _, tc := range testCases {
 
-				mailer.EXPECT().
-					SendEmail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Times(1).
-					Return(nil)
-			},
-		},
-	}
+// 		t.Run(tc.name, func(t *testing.T) {
 
-	for _, tc := range testCases {
+// 			storeCtrl := gomock.NewController(t)
+// 			mockStore := mockdb.NewMockStore(storeCtrl)
 
-		t.Run(tc.name, func(t *testing.T) {
+// 			mailCtrl := gomock.NewController(t)
+// 			mockMailer := mockmail.NewMockEmailSender(mailCtrl)
 
-			storeCtrl := gomock.NewController(t)
-			mockStore := mockdb.NewMockStore(storeCtrl)
+// 			tc.buildStubs(mockStore, mockMailer)
 
-			mailCtrl := gomock.NewController(t)
-			mockMailer := mockmail.NewMockEmailSender(mailCtrl)
+// 			// Initialize the processor with mocked dependencies
+// 			processor := newTestTaskProcessor(t, mockStore, mockMailer)
 
-			tc.buildStubs(mockStore, mockMailer)
+// 			// Create a context and task for testing
+// 			ctx := context.Background()
 
-			// Initialize the processor with mocked dependencies
-			processor := newTestTaskProcessor(t, mockStore, mockMailer)
+// 			// Call the method under test
+// 			err := processor.ProcessTaskSendVerifyEmail(ctx, tc.task)
 
-			// Create a context and task for testing
-			ctx := context.Background()
-
-			// Call the method under test
-			err := processor.ProcessTaskSendVerifyEmail(ctx, tc.task)
-
-			// Assert expectations
-			require.NoError(t, err)
-		})
-	}
-}
+// 			// Assert expectations
+// 			require.NoError(t, err)
+// 		})
+// 	}
+// }

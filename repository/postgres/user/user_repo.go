@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
-	"strings"
 	"time"
+
+	"github.com/aradwann/eenergy/repository/postgres/common"
 )
 
 type User struct {
@@ -46,16 +47,16 @@ type CreateUserParams struct {
 	Email          string `json:"email"`
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	var user User
+func (r *userRepository) CreateUser(ctx context.Context, arg CreateUserParams) (*User, error) {
+	user := &User{}
 	slog.Info("CreateUser", slog.String("username", arg.Username))
-	row := q.callStoredFunction(ctx, "create_user",
+	row := common.CallStoredFunction(ctx, r.db, "create_user",
 		arg.Username,
 		arg.HashedPassword,
 		arg.FullName,
 		arg.Email)
 
-	err := scanUserFromRow(row, &user)
+	err := scanUserFromRow(row, user)
 	if err != nil {
 		slog.Error("error scaning the created user", slog.String("error message", err.Error()))
 		return user, err
@@ -63,12 +64,11 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return user, nil
 }
 
-func (q *Queries) GetUser(ctx context.Context, username string) (User, error) {
-	var user User
-	row := q.callStoredFunction(ctx, "get_user", username)
-	err := scanUserFromRow(row, &user)
-	if err != nil {
-		return user, err
+func (r *userRepository) GetUser(ctx context.Context, username string) (*User, error) {
+	user := &User{}
+	row := common.CallStoredFunction(ctx, r.db, "get_user", username)
+	if err := scanUserFromRow(row, user); err != nil {
+		return nil, err
 	}
 	return user, nil
 }
@@ -82,8 +82,8 @@ type UpdateUserParams struct {
 	IsEmailVerified   sql.NullBool   `json:"is_email_verified"`
 }
 
-func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
-	var user User
+func (r *userRepository) UpdateUser(ctx context.Context, arg UpdateUserParams) (*User, error) {
+	user := &User{}
 	params := []interface{}{
 		arg.Username,
 		arg.HashedPassword,
@@ -92,18 +92,22 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		arg.Email,
 		arg.IsEmailVerified,
 	}
-	row := q.callStoredFunction(ctx, "update_user", params...)
+	row := common.CallStoredFunction(ctx, r.db, "update_user", params...)
 
 	// Execute the stored procedure and scan the results into the variables
-	err := scanUserFromRow(row, &user)
-	if err != nil {
-		return User{}, err
+	if err := scanUserFromRow(row, user); err != nil {
+		return nil, err
 	}
-
 	return user, nil
 }
 
 func scanUserFromRow(row *sql.Row, user *User) error {
+	if row == nil {
+		return fmt.Errorf("row is nil")
+	}
+	if user == nil {
+		return fmt.Errorf("user is nil")
+	}
 	err := row.Scan(
 		&user.Username,
 		&user.HashedPassword,
@@ -118,7 +122,7 @@ func scanUserFromRow(row *sql.Row, user *User) error {
 	// Check for errors after scanning
 	if err != nil {
 		// Handle scan-related errors
-		if errors.Is(err, ErrRecordNotFound) {
+		if errors.Is(err, common.ErrRecordNotFound) {
 			// fmt.Println("No rows were returned.")
 			return err
 		} else {
@@ -129,38 +133,4 @@ func scanUserFromRow(row *sql.Row, user *User) error {
 	}
 
 	return nil
-}
-
-// callStoredFunction executes a stored function and returns a single row result.
-func (r *userRepository) callStoredFunction(ctx context.Context, functionName string, params ...interface{}) *sql.Row {
-	placeholders := generateParamPlaceholders(len(params))
-
-	// Construct the SQL statement to call the stored function.
-	sqlStatement := fmt.Sprintf(`SELECT * FROM %s(%s)`, functionName, placeholders)
-	slog.Info("PostgreSQL function called",
-		slog.String("function name", functionName),
-		// slog.Any("params", params), // TODO: filter out sensitive info
-		slog.String("SQL statement", sqlStatement),
-	)
-
-	return r.db.QueryRowContext(ctx, sqlStatement, params...)
-}
-
-// callStoredFunctionRows executes a stored function and returns multiple rows result.
-func (r *userRepository) callStoredFunctionRows(ctx context.Context, functionName string, params ...interface{}) (*sql.Rows, error) {
-	placeholders := generateParamPlaceholders(len(params))
-
-	// Construct the SQL statement to call the stored function.
-	sqlStatement := fmt.Sprintf(`SELECT * FROM %s(%s)`, functionName, placeholders)
-
-	return r.db.QueryContext(ctx, sqlStatement, params...)
-}
-
-// generateParamPlaceholders generates placeholders for SQL parameters.
-func generateParamPlaceholders(count int) string {
-	placeholders := make([]string, count)
-	for i := 1; i <= count; i++ {
-		placeholders[i-1] = fmt.Sprintf("$%d", i)
-	}
-	return strings.Join(placeholders, ", ")
 }

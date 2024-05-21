@@ -14,13 +14,6 @@ message Transfer {
   google.protobuf.Timestamp created_at = 5;
 }
 
-message Account {
-  int64 id = 1;
-  string owner = 2;
-  int64 balance = 3;
-  string unit = 4;
-  google.protobuf.Timestamp created_at = 5;
-}
 
 message Entry {
   int64 id = 1;

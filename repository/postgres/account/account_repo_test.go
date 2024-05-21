@@ -2,23 +2,68 @@ package account
 
 import (
 	"context"
+	"database/sql"
+	"log"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/aradwann/eenergy/repository/postgres/common"
-	db "github.com/aradwann/eenergy/repository/store"
+	"github.com/aradwann/eenergy/repository/postgres/user"
 	"github.com/aradwann/eenergy/util"
 
 	"github.com/stretchr/testify/require"
 )
 
-func createRandomAccount(t *testing.T) *Account {
-	user := db.User{
-		Username: "aftttq",
+func CreateRandomUser(t *testing.T) *user.User {
+	hashedPassword, err := util.HashPassword(util.RandomString(6))
+	require.NoError(t, err)
+
+	arg := user.CreateUserParams{
+		Username:       util.RandomOwner(),
+		HashedPassword: hashedPassword,
+		FullName:       util.RandomOwner(),
+		Email:          util.RandomEmail(),
 	}
 
+	user, err := testUserRepo.CreateUser(context.Background(), arg)
+	require.NoError(t, err)
+	require.NotEmpty(t, user)
+
+	require.Equal(t, arg.Username, user.Username)
+	require.Equal(t, arg.HashedPassword, user.HashedPassword)
+	require.Equal(t, arg.FullName, user.FullName)
+	require.Equal(t, arg.Email, user.Email)
+
+	require.True(t, user.PasswordChangedAt.IsZero())
+	require.NotZero(t, user.CreatedAt)
+	return user
+}
+
+var testAccRepo AccountRepository
+var testUserRepo user.UserRepository
+
+func TestMain(m *testing.M) {
+	config, err := util.LoadConfig("../../..", ".env")
+	if err != nil {
+		log.Fatal("cannot load config:", err)
+	}
+
+	testDB, err := sql.Open(config.DBDriver, config.DBSource)
+	if err != nil {
+		log.Fatal("cannot connect to db:", err)
+	}
+
+	testAccRepo = NewAccountRepository(testDB)
+	testUserRepo = user.NewUserRepository(testDB)
+	os.Exit(m.Run())
+}
+
+func createRandomAccount(t *testing.T) *Account {
+	u := CreateRandomUser(t)
+
 	arg := CreateAccountParams{
-		Owner:   user.Username,
+		Owner:   u.Username,
 		Balance: util.RandomAmount(),
 		Unit:    util.RandomUnit(),
 	}

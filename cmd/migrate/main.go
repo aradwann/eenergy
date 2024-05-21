@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	mig "github.com/aradwann/eenergy/repository/store"
+	"github.com/aradwann/eenergy/repository/postgres/migrate"
 	"github.com/aradwann/eenergy/util"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -24,5 +24,5 @@ func main() {
 	}
 	defer db.Close()
 
-	mig.RunDBMigrations(db, config.MigrationsURL)
+	migrate.RunDBMigrations(db, config.MigrationsURL)
 }

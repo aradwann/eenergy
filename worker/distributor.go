@@ -1,26 +1,20 @@
 package worker
 
-import (
-	"context"
+// type TaskDistributor interface {
+// 	DistributeTaskSendVerifyEmail(
+// 		ctx context.Context,
+// 		payload *PayloadSendVerifyEmail,
+// 		opts ...asynq.Option,
+// 	) error
+// }
 
-	"github.com/hibiken/asynq"
-)
+// type RedisTaskDistributor struct {
+// 	client *asynq.Client
+// }
 
-type TaskDistributor interface {
-	DistributeTaskSendVerifyEmail(
-		ctx context.Context,
-		payload *PayloadSendVerifyEmail,
-		opts ...asynq.Option,
-	) error
-}
-
-type RedisTaskDistributor struct {
-	client *asynq.Client
-}
-
-func NewRedisTaskDistributor(redisOpt asynq.RedisClientOpt) TaskDistributor {
-	client := asynq.NewClient(redisOpt)
-	return &RedisTaskDistributor{
-		client: client,
-	}
-}
+// func NewRedisTaskDistributor(redisOpt asynq.RedisClientOpt) TaskDistributor {
+// 	client := asynq.NewClient(redisOpt)
+// 	return &RedisTaskDistributor{
+// 		client: client,
+// 	}
+// }

@@ -6,8 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"log/slog"
-	"strings"
 	"time"
 
 	"github.com/aradwann/eenergy/repository/postgres/common"
@@ -48,7 +46,7 @@ type AddAccountBalanceParams struct {
 
 func (r *accountRepository) AddAccountBalance(ctx context.Context, arg AddAccountBalanceParams) (*Account, error) {
 	acc := &Account{}
-	row := r.callStoredFunction(ctx, "add_account_balance",
+	row := common.CallStoredFunction(ctx, r.db, "add_account_balance",
 		arg.Amount,
 		arg.ID,
 	)
@@ -68,7 +66,7 @@ type CreateAccountParams struct {
 
 func (r *accountRepository) CreateAccount(ctx context.Context, arg CreateAccountParams) (*Account, error) {
 	acc := &Account{}
-	row := r.callStoredFunction(ctx, "create_account",
+	row := common.CallStoredFunction(ctx, r.db, "create_account",
 		arg.Owner,
 		arg.Balance,
 		arg.Unit,
@@ -84,7 +82,7 @@ func (r *accountRepository) CreateAccount(ctx context.Context, arg CreateAccount
 func (r *accountRepository) DeleteAccount(ctx context.Context, id int64) error {
 	var result bool
 
-	row := r.callStoredFunction(ctx, "delete_account",
+	row := common.CallStoredFunction(ctx, r.db, "delete_account",
 		id,
 	)
 	err := row.Scan(&result)
@@ -102,7 +100,7 @@ func (r *accountRepository) DeleteAccount(ctx context.Context, id int64) error {
 
 func (r *accountRepository) GetAccount(ctx context.Context, id int64) (*Account, error) {
 	acc := &Account{}
-	row := r.callStoredFunction(ctx, "get_account", id)
+	row := common.CallStoredFunction(ctx, r.db, "get_account", id)
 
 	if err := scanAccount(row, acc); err != nil {
 		return nil, fmt.Errorf("failed to scan account: %w", err)
@@ -118,7 +116,7 @@ type ListAccountsParams struct {
 }
 
 func (r *accountRepository) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]*Account, error) {
-	rows, err := r.callStoredFunctionRows(ctx, "list_accounts", arg.Owner, arg.Limit, arg.Offset)
+	rows, err := common.CallStoredFunctionRows(ctx, r.db, "list_accounts", arg.Owner, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +124,7 @@ func (r *accountRepository) ListAccounts(ctx context.Context, arg ListAccountsPa
 
 	var items []*Account
 	for rows.Next() {
-		var acc *Account
+		acc := &Account{}
 		if err := scanAccount(rows, acc); err != nil {
 			return nil, fmt.Errorf("failed to scan account: %w", err)
 		}
@@ -146,7 +144,7 @@ type UpdateAccountParams struct {
 
 func (r *accountRepository) UpdateAccount(ctx context.Context, arg UpdateAccountParams) (*Account, error) {
 	acc := &Account{}
-	row := r.callStoredFunction(ctx, "update_account", arg.ID, arg.Balance)
+	row := common.CallStoredFunction(ctx, r.db, "update_account", arg.ID, arg.Balance)
 	if err := scanAccount(row, acc); err != nil {
 		return nil, fmt.Errorf("failed to scan account: %w", err)
 	}
@@ -176,38 +174,4 @@ func scanAccount(scanner interface {
 		return err
 	}
 	return nil
-}
-
-// callStoredFunction executes a stored function and returns a single row result.
-func (r *accountRepository) callStoredFunction(ctx context.Context, functionName string, params ...interface{}) *sql.Row {
-	placeholders := generateParamPlaceholders(len(params))
-
-	// Construct the SQL statement to call the stored function.
-	sqlStatement := fmt.Sprintf(`SELECT * FROM %s(%s)`, functionName, placeholders)
-	slog.Info("PostgreSQL function called",
-		slog.String("function name", functionName),
-		// slog.Any("params", params), // TODO: filter out sensitive info
-		slog.String("SQL statement", sqlStatement),
-	)
-
-	return r.db.QueryRowContext(ctx, sqlStatement, params...)
-}
-
-// callStoredFunctionRows executes a stored function and returns multiple rows result.
-func (r *accountRepository) callStoredFunctionRows(ctx context.Context, functionName string, params ...interface{}) (*sql.Rows, error) {
-	placeholders := generateParamPlaceholders(len(params))
-
-	// Construct the SQL statement to call the stored function.
-	sqlStatement := fmt.Sprintf(`SELECT * FROM %s(%s)`, functionName, placeholders)
-
-	return r.db.QueryContext(ctx, sqlStatement, params...)
-}
-
-// generateParamPlaceholders generates placeholders for SQL parameters.
-func generateParamPlaceholders(count int) string {
-	placeholders := make([]string, count)
-	for i := 1; i <= count; i++ {
-		placeholders[i-1] = fmt.Sprintf("$%d", i)
-	}
-	return strings.Join(placeholders, ", ")
 }

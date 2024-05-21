@@ -1,17 +1,12 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Eenergy",
-    "version": "1.0",
-    "contact": {
-      "name": "Ahmed Radwan",
-      "url": "https://github.com/aradwann",
-      "email": "aradwann@proton.me"
-    }
+    "title": "account.proto",
+    "version": "version not set"
   },
   "tags": [
     {
-      "name": "EenergyService"
+      "name": "AccountService"
     }
   ],
   "consumes": [
@@ -22,59 +17,15 @@
   ],
   "paths": {
     "/v1/accounts": {
-      "get": {
-        "summary": "user accounts",
-        "description": "Use this API to get User accounts",
-        "operationId": "EenergyService_ListUserAccounts",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/pbListUserAccountsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "username",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "required": false,
-            "type": "integer",
-            "format": "int32"
-          }
-        ],
-        "tags": [
-          "EenergyService"
-        ]
-      },
       "post": {
         "summary": "create account",
         "description": "Use this API to create an account",
-        "operationId": "EenergyService_CreateAccount",
+        "operationId": "AccountService_CreateAccount",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/pbCreateAccountResponse"
+              "$ref": "#/definitions/v1CreateAccountResponse"
             }
           },
           "default": {
@@ -90,25 +41,25 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/pbCreateAccountRequest"
+              "$ref": "#/definitions/v1CreateAccountRequest"
             }
           }
         ],
         "tags": [
-          "EenergyService"
+          "AccountService"
         ]
       }
     },
-    "/v1/accounts/{accountId}/entries": {
+    "/v1/accounts/{id}": {
       "get": {
-        "summary": "account entries",
-        "description": "Use this API to get user account entries",
-        "operationId": "EenergyService_ListAccountEntries",
+        "summary": "create account",
+        "description": "Use this API to create an account",
+        "operationId": "AccountService_GetAccount",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/pbListAccountEntriesResponse"
+              "$ref": "#/definitions/v1GetAccountResponse"
             }
           },
           "default": {
@@ -120,465 +71,20 @@
         },
         "parameters": [
           {
-            "name": "accountId",
+            "name": "id",
             "in": "path",
             "required": true,
             "type": "string",
             "format": "int64"
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "required": false,
-            "type": "integer",
-            "format": "int32"
           }
         ],
         "tags": [
-          "EenergyService"
-        ]
-      }
-    },
-    "/v1/energy/transfer": {
-      "post": {
-        "summary": "transfer energy",
-        "description": "Use this API to transfer energy from account to another",
-        "operationId": "EenergyService_TransferEnergy",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/pbTransferEnergyResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/pbTransferEnergyRequest"
-            }
-          }
-        ],
-        "tags": [
-          "EenergyService"
-        ]
-      }
-    },
-    "/v1/user": {
-      "post": {
-        "summary": "Create new user",
-        "description": "Use this API to create a new user",
-        "operationId": "EenergyService_CreateUser",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/pbCreateUserResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/pbCreateUserRequest"
-            }
-          }
-        ],
-        "tags": [
-          "EenergyService"
-        ]
-      },
-      "patch": {
-        "summary": "Update user",
-        "description": "Use this API to update user",
-        "operationId": "EenergyService_UpdateUser",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/pbUpdateUserResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/pbUpdateUserRequest"
-            }
-          }
-        ],
-        "tags": [
-          "EenergyService"
-        ]
-      }
-    },
-    "/v1/user/login": {
-      "post": {
-        "summary": "Login user",
-        "description": "Use this API to login user and get access token \u0026 refresh token",
-        "operationId": "EenergyService_LoginUser",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/pbLoginUserResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/pbLoginUserRequest"
-            }
-          }
-        ],
-        "tags": [
-          "EenergyService"
-        ]
-      }
-    },
-    "/v1/verify-email": {
-      "get": {
-        "summary": "verify email",
-        "description": "Use this API to verify the user email",
-        "operationId": "EenergyService_VerifyEmail",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/pbVerifyEmailResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "emailId",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "int64"
-          },
-          {
-            "name": "secretCode",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "EenergyService"
+          "AccountService"
         ]
       }
     }
   },
   "definitions": {
-    "pbAccount": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64"
-        },
-        "owner": {
-          "type": "string"
-        },
-        "balance": {
-          "type": "string",
-          "format": "int64"
-        },
-        "unit": {
-          "type": "string"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time"
-        }
-      }
-    },
-    "pbCreateAccountRequest": {
-      "type": "object",
-      "properties": {
-        "username": {
-          "type": "string"
-        }
-      }
-    },
-    "pbCreateAccountResponse": {
-      "type": "object",
-      "properties": {
-        "account": {
-          "$ref": "#/definitions/pbAccount"
-        }
-      }
-    },
-    "pbCreateUserRequest": {
-      "type": "object",
-      "properties": {
-        "username": {
-          "type": "string"
-        },
-        "fullName": {
-          "type": "string"
-        },
-        "email": {
-          "type": "string"
-        },
-        "password": {
-          "type": "string"
-        }
-      }
-    },
-    "pbCreateUserResponse": {
-      "type": "object",
-      "properties": {
-        "user": {
-          "$ref": "#/definitions/pbUser"
-        }
-      }
-    },
-    "pbEntry": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64"
-        },
-        "accountId": {
-          "type": "string",
-          "format": "int64"
-        },
-        "amount": {
-          "type": "string",
-          "format": "int64"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time"
-        }
-      }
-    },
-    "pbListAccountEntriesResponse": {
-      "type": "object",
-      "properties": {
-        "entries": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/pbEntry"
-          }
-        }
-      }
-    },
-    "pbListUserAccountsResponse": {
-      "type": "object",
-      "properties": {
-        "accounts": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/pbAccount"
-          }
-        }
-      }
-    },
-    "pbLoginUserRequest": {
-      "type": "object",
-      "properties": {
-        "username": {
-          "type": "string"
-        },
-        "password": {
-          "type": "string"
-        }
-      }
-    },
-    "pbLoginUserResponse": {
-      "type": "object",
-      "properties": {
-        "user": {
-          "$ref": "#/definitions/pbUser"
-        },
-        "sessionId": {
-          "type": "string"
-        },
-        "accessToken": {
-          "type": "string"
-        },
-        "accessTokenExpiresAt": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "refreshToken": {
-          "type": "string"
-        },
-        "refreshTokenExpiresAt": {
-          "type": "string",
-          "format": "date-time"
-        }
-      }
-    },
-    "pbTransfer": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64"
-        },
-        "fromAccountId": {
-          "type": "string",
-          "format": "int64"
-        },
-        "toAccountId": {
-          "type": "string",
-          "format": "int64"
-        },
-        "amount": {
-          "type": "string",
-          "format": "int64"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time"
-        }
-      }
-    },
-    "pbTransferEnergyRequest": {
-      "type": "object",
-      "properties": {
-        "fromAccountId": {
-          "type": "string",
-          "format": "int64"
-        },
-        "toAccountId": {
-          "type": "string",
-          "format": "int64"
-        },
-        "amount": {
-          "type": "string",
-          "format": "int64"
-        }
-      }
-    },
-    "pbTransferEnergyResponse": {
-      "type": "object",
-      "properties": {
-        "transfer": {
-          "$ref": "#/definitions/pbTransfer"
-        },
-        "fromAccount": {
-          "$ref": "#/definitions/pbAccount"
-        },
-        "fromEntry": {
-          "$ref": "#/definitions/pbEntry",
-          "description": "Entry to_entry = 5; // don't expose other user account to the sender",
-          "title": "Account to_account = 3; // don't expose other user account to the sender"
-        }
-      }
-    },
-    "pbUpdateUserRequest": {
-      "type": "object",
-      "properties": {
-        "username": {
-          "type": "string"
-        },
-        "fullName": {
-          "type": "string"
-        },
-        "email": {
-          "type": "string"
-        },
-        "password": {
-          "type": "string"
-        }
-      }
-    },
-    "pbUpdateUserResponse": {
-      "type": "object",
-      "properties": {
-        "user": {
-          "$ref": "#/definitions/pbUser"
-        }
-      }
-    },
-    "pbUser": {
-      "type": "object",
-      "properties": {
-        "username": {
-          "type": "string"
-        },
-        "fullName": {
-          "type": "string"
-        },
-        "email": {
-          "type": "string"
-        },
-        "passwordChangedAt": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time"
-        }
-      }
-    },
-    "pbVerifyEmailResponse": {
-      "type": "object",
-      "properties": {
-        "isVerified": {
-          "type": "boolean"
-        }
-      }
-    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -604,6 +110,53 @@
             "type": "object",
             "$ref": "#/definitions/protobufAny"
           }
+        }
+      }
+    },
+    "v1Account": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "owner": {
+          "type": "string"
+        },
+        "balance": {
+          "type": "string",
+          "format": "int64"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "v1CreateAccountRequest": {
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string"
+        }
+      }
+    },
+    "v1CreateAccountResponse": {
+      "type": "object",
+      "properties": {
+        "account": {
+          "$ref": "#/definitions/v1Account"
+        }
+      }
+    },
+    "v1GetAccountResponse": {
+      "type": "object",
+      "properties": {
+        "account": {
+          "$ref": "#/definitions/v1Account"
         }
       }
     }
