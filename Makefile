@@ -5,13 +5,14 @@ DB_PASS=secret
 DB_HOST=localhost
 DB_PORT=5432
 DB_SOURCE=postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable
-MIGRATIONS_PATH=db/migrations
-CONFIG_PATH=dev-certs/
+MIGRATIONS_PATH=migrations
+CERT_PATH=dev-certs/
 DOCKER_CONTAINER_NAME=postgres
 
 # Setup
 init:
-	mkdir -p ${CONFIG_PATH}
+# create dev certs path
+	mkdir -p ${CERT_PATH} 
 
 # Database Operations
 createdb:
@@ -22,7 +23,7 @@ dropdb:
 
 # Migration
 migrateup:
-	go run db/scripts/migrate.go
+	go run cmd/migrate/main.go
 
 migrateup1:
 	migrate -path $(MIGRATIONS_PATH) -database $(DB_SOURCE) -verbose up 1

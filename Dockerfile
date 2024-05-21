@@ -12,7 +12,7 @@ FROM alpine:3.19
 WORKDIR /app
 COPY --from=builder /app/main .
 COPY .env .
-COPY db/migrations ./db/migrations
+COPY migrations migrations
 COPY dev-certs ./dev-certs
 
 EXPOSE 8080

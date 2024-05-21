@@ -25,5 +25,4 @@ func main() {
 	defer db.Close()
 
 	mig.RunDBMigrations(db, config.MigrationsURL)
-
 }

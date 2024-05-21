@@ -37,7 +37,7 @@ func RunDBMigrations(db *sql.DB, migrationsURL string) {
 	slog.Info("DB migrated successfully")
 
 	// Run unversioned migrations
-	err = runUnversionedMigrations(db, "./db/migrations/functions")
+	err = runUnversionedMigrations(db, "./migrations/functions")
 	if err != nil {
 		slog.Error("Error applying unversioned migrations:", err)
 		os.Exit(1)
