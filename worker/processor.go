@@ -4,8 +4,8 @@ import (
 	"context"
 	"log/slog"
 
-	db "github.com/aradwann/eenergy/db/store"
 	"github.com/aradwann/eenergy/mail"
+	db "github.com/aradwann/eenergy/repository/store"
 	"github.com/hibiken/asynq"
 )
 

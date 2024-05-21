@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	mig "github.com/aradwann/eenergy/db/store"
+	mig "github.com/aradwann/eenergy/repository/store"
 	"github.com/aradwann/eenergy/util"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/jackc/pgx/v5/stdlib"

@@ -3,8 +3,8 @@ package worker
 import (
 	"testing"
 
-	db "github.com/aradwann/eenergy/db/store"
 	"github.com/aradwann/eenergy/mail"
+	db "github.com/aradwann/eenergy/repository/store"
 	"github.com/hibiken/asynq"
 	"github.com/stretchr/testify/require"
 )

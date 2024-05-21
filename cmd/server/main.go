@@ -12,13 +12,13 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/aradwann/eenergy/api"
 	"github.com/aradwann/eenergy/assets"
-	db "github.com/aradwann/eenergy/db/store"
-	"github.com/aradwann/eenergy/gapi"
 	"github.com/aradwann/eenergy/logger"
 	"github.com/aradwann/eenergy/mail"
-	"github.com/aradwann/eenergy/observability"
 	"github.com/aradwann/eenergy/pb"
+	db "github.com/aradwann/eenergy/repository/store"
+	"github.com/aradwann/eenergy/telemetry"
 	"github.com/aradwann/eenergy/util"
 	"github.com/aradwann/eenergy/worker"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -41,7 +41,7 @@ func main() {
 	defer stop()
 
 	// Set up OpenTelemetry.
-	otelShutdown, err := observability.SetupOTelSDK(ctx)
+	otelShutdown, err := telemetry.SetupOTelSDK(ctx)
 	if err != nil {
 		handleError("error setting up OpenTelemetry", err)
 	}
@@ -99,12 +99,12 @@ func runGrpcServer(config util.Config, store db.Store, taskDistributor worker.Ta
 	})
 
 	// Create gRPC server.
-	server, err := gapi.NewServer(config, store, taskDistributor)
+	server, err := api.NewServer(config, store, taskDistributor)
 	if err != nil {
 		handleError("cannot create gRPC server", err)
 	}
 
-	grpcLogger := grpc.UnaryInterceptor(gapi.GrpcLogger)
+	grpcLogger := grpc.UnaryInterceptor(api.GrpcLogger)
 	grpcServer := grpc.NewServer(grpcLogger, grpc.Creds(creds), grpc.StatsHandler(otelgrpc.NewServerHandler()))
 
 	// Register health check service.
@@ -133,7 +133,7 @@ func runGrpcServer(config util.Config, store db.Store, taskDistributor worker.Ta
 // runGatewayServer runs the HTTP gateway server.
 func runGatewayServer(config util.Config, store db.Store, taskDistributor worker.TaskDistributor) {
 	// Create gRPC server instance.
-	server, err := gapi.NewServer(config, store, taskDistributor)
+	server, err := api.NewServer(config, store, taskDistributor)
 	if err != nil {
 		handleError("cannot create HTTP gateway server", err)
 	}

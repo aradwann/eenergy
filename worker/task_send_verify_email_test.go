@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"testing"
 
-	mockdb "github.com/aradwann/eenergy/db/mock"
-	db "github.com/aradwann/eenergy/db/store"
 	mockmail "github.com/aradwann/eenergy/mail/mock"
+	mockdb "github.com/aradwann/eenergy/repository/mock"
+	db "github.com/aradwann/eenergy/repository/store"
 	"github.com/aradwann/eenergy/util"
 	"github.com/hibiken/asynq"
 	"github.com/stretchr/testify/require"

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	db "github.com/aradwann/eenergy/db/store"
+	db "github.com/aradwann/eenergy/repository/store"
 	"github.com/aradwann/eenergy/util"
 	"github.com/hibiken/asynq"
 )
