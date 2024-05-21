@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"embed"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -13,6 +12,7 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/aradwann/eenergy/assets"
 	db "github.com/aradwann/eenergy/db/store"
 	"github.com/aradwann/eenergy/gapi"
 	"github.com/aradwann/eenergy/logger"
@@ -33,9 +33,6 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
 )
-
-//go:embed doc/swagger/*
-var content embed.FS
 
 // main is the entry point of the application.
 func main() {
@@ -166,7 +163,7 @@ func runGatewayServer(config util.Config, store db.Store, taskDistributor worker
 	mux := http.NewServeMux()
 	mux.Handle("/", grpcMux)
 	// TODO: fix path
-	mux.Handle("/swagger/", http.FileServer(http.FS(content)))
+	mux.Handle("/swagger/", http.FileServer(http.FS(assets.SwaggerFS)))
 
 	// Start HTTP gateway server.
 	listener, err := net.Listen("tcp", config.HTTPServerAddress)

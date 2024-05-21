@@ -5,7 +5,7 @@ COPY go.mod ./
 COPY go.sum ./
 RUN go mod download
 COPY . .
-RUN go build -o main main.go
+RUN go build -o main cmd/server/main.go
 
 # Run stage
 FROM alpine:3.19 
