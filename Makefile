@@ -7,7 +7,6 @@ DB_PORT=5432
 DB_SOURCE=postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable
 MIGRATIONS_PATH=migrations
 CERT_PATH=dev-certs/
-DOCKER_CONTAINER_NAME=postgres
 
 # Setup
 init:
@@ -15,11 +14,7 @@ init:
 	mkdir -p ${CERT_PATH} 
 
 # Database Operations
-createdb:
-	docker exec -it ${DOCKER_CONTAINER_NAME} createdb --username=${DB_USER} --owner=${DB_USER} ${DB_NAME}
-
-dropdb:
-	docker exec -it ${DOCKER_CONTAINER_NAME} dropdb ${DB_NAME}
+# TODO: impl handy DB operations
 
 # Migration
 migrateup:
@@ -57,11 +52,15 @@ server:
 
 # Protocol Buffers
 protoc: 
-	protoc --proto_path=api/grpc/v1/proto --go_out=api/grpc/v1/pb --go_opt=paths=source_relative \
-	--go-grpc_out=api/grpc/v1/pb --go-grpc_opt=paths=source_relative \
-	--grpc-gateway_out=api/grpc/v1/pb --grpc-gateway_opt=paths=source_relative \
-	--openapiv2_out=assets/doc/swagger --openapiv2_opt=allow_merge=true,merge_file_name=eenergy \
-	api/grpc/v1/proto/*.proto
+	protoc --proto_path=api/grpc/v1/proto \
+  	--go_out=paths=source_relative:api/grpc/v1/handlers \
+  	--go-grpc_out=paths=source_relative:api/grpc/v1/handlers \
+  	--grpc-gateway_out=paths=source_relative:api/grpc/v1/handlers \
+	--grpc-gateway_opt generate_unbound_methods=true \
+	--openapiv2_out=assets/doc/swagger --openapiv2_opt=allow_merge=true,merge_file_name=eenergy,generate_unbound_methods=true \
+  	api/grpc/v1/proto/**/*.proto 
+
+#TODO: try to use grpc-gateway config through external config file 
 
 # gRPC Client
 evans:
