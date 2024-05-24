@@ -1,105 +1,135 @@
 package main
 
 import (
+	"context"
+	"crypto/tls"
+	"crypto/x509"
+	"errors"
+	"fmt"
+	"log/slog"
+	"net"
+	"os"
+	"os/signal"
+
+	userHandler "github.com/aradwann/eenergy/api/grpc/v1/handlers/user"
+	"github.com/aradwann/eenergy/api/grpc/v1/interceptors"
+	"github.com/aradwann/eenergy/repository/postgres"
+	userRepo "github.com/aradwann/eenergy/repository/postgres/user"
+	userService "github.com/aradwann/eenergy/service/v1/user"
+	"github.com/aradwann/eenergy/telemetry"
+
+	"github.com/aradwann/eenergy/util"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/health"
+	"google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/reflection"
 )
 
-// // main is the entry point of the application.
-// func main() {
-// 	// Handle SIGINT (CTRL+C) gracefully.
-// 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
-// 	defer stop()
+// main is the entry point of the application.
+func main() {
+	// Handle SIGINT (CTRL+C) gracefully.
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
 
-// 	// Set up OpenTelemetry.
-// 	otelShutdown, err := telemetry.SetupOTelSDK(ctx)
-// 	if err != nil {
-// 		handleError("error setting up OpenTelemetry", err)
-// 	}
-// 	defer func() {
-// 		err = errors.Join(err, otelShutdown(context.Background()))
-// 	}()
+	// Set up OpenTelemetry.
+	otelShutdown, err := telemetry.SetupOTelSDK(ctx)
+	if err != nil {
+		handleError("error setting up OpenTelemetry", err)
+	}
+	defer func() {
+		err = errors.Join(err, otelShutdown(context.Background()))
+	}()
 
-// 	// Load configuration.
-// 	config, err := util.LoadConfig(".", ".env")
-// 	if err != nil {
-// 		handleError("error loading config", err)
-// 	}
+	// Load configuration.
+	config, err := util.LoadConfig(".", ".env")
+	if err != nil {
+		handleError("error loading config", err)
+	}
 
-// 	// Initialize logger.
-// 	logger.InitLogger(config)
+	// Initialize logger.
+	telemetry.InitLogger(config)
 
-// 	// Initialize Database
-// 	store := db.InitDatabase(config)
+	// Initialize Database
+	db := postgres.InitDatabase(config)
+	defer db.Close()
 
-// 	// Set up Redis options for task distribution.
-// 	redisOpts := asynq.RedisClientOpt{
-// 		Addr: config.RedisAddress,
-// 	}
+	// Set up Redis options for task distribution.
+	// redisOpts := asynq.RedisClientOpt{
+	// 	Addr: config.RedisAddress,
+	// }
 
-// 	// Run task processor and HTTP gateway server concurrently.
-// 	taskDistributor := worker.NewRedisTaskDistributor(redisOpts)
-// 	go runTaskProcessor(config, redisOpts, store)
-// 	go runGatewayServer(config, store, taskDistributor)
+	// Run task processor and HTTP gateway server concurrently.
+	// taskDistributor := worker.NewRedisTaskDistributor(redisOpts)
+	// go runTaskProcessor(config, redisOpts, store)
+	// go runGatewayServer(config, store, taskDistributor)
 
-// 	// Run gRPC server.
-// 	runGrpcServer(config, store, taskDistributor)
-// }
+	// Initialize repositories
+	userRepo := userRepo.NewUserRepository(db)
 
-// // runGrpcServer runs the gRPC server.
-// func runGrpcServer(config util.Config, store db.Store, taskDistributor worker.TaskDistributor) {
-// 	// Load TLS certificate and create TLS credentials.
-// 	cert, err := tls.LoadX509KeyPair(config.ServerCrtPath, config.ServerKeyPath)
-// 	if err != nil {
-// 		handleError("cannot load server key pair", err)
-// 	}
+	// Initialize services
+	userService := userService.NewUserService(userRepo)
 
-// 	certPool := x509.NewCertPool()
-// 	ca, err := os.ReadFile(config.CACrtPath)
-// 	if err != nil {
-// 		handleError("cannot read ca certificate", err)
-// 	}
-// 	if ok := certPool.AppendCertsFromPEM(ca); !ok {
-// 		handleError("failed to append client certs", nil)
-// 	}
+	// Run gRPC server.
+	runGrpcServer(config, userService)
+}
 
-// 	creds := credentials.NewTLS(&tls.Config{
-// 		ClientAuth:   tls.RequireAndVerifyClientCert,
-// 		Certificates: []tls.Certificate{cert},
-// 		ClientCAs:    certPool,
-// 	})
+// runGrpcServer runs the gRPC server.
+func runGrpcServer(config util.Config, userService userService.UserService) {
+	// Load TLS certificate and create TLS credentials.
+	cert, err := tls.LoadX509KeyPair(config.ServerCrtPath, config.ServerKeyPath)
+	if err != nil {
+		handleError("cannot load server key pair", err)
+	}
 
-// 	// Create gRPC server.
-// 	server, err := api.NewServer(config, store, taskDistributor)
-// 	if err != nil {
-// 		handleError("cannot create gRPC server", err)
-// 	}
+	certPool := x509.NewCertPool()
+	ca, err := os.ReadFile(config.CACrtPath)
+	if err != nil {
+		handleError("cannot read ca certificate", err)
+	}
+	if ok := certPool.AppendCertsFromPEM(ca); !ok {
+		handleError("failed to append client certs", nil)
+	}
 
-// 	grpcLogger := grpc.UnaryInterceptor(api.GrpcLogger)
-// 	grpcServer := grpc.NewServer(grpcLogger, grpc.Creds(creds), grpc.StatsHandler(otelgrpc.NewServerHandler()))
+	creds := credentials.NewTLS(&tls.Config{
+		ClientAuth:   tls.RequireAndVerifyClientCert,
+		Certificates: []tls.Certificate{cert},
+		ClientCAs:    certPool,
+	})
 
-// 	// Register health check service.
-// 	healthSrv := health.NewServer()
-// 	grpc_health_v1.RegisterHealthServer(grpcServer, healthSrv)
+	// Create gRPC server.
+	// server, err := api.NewServer(config, store, taskDistributor)
+	// if err != nil {
+	// 	handleError("cannot create gRPC server", err)
+	// }
 
-// 	// Register gRPC service.
-// 	pb.RegisterEenergyServiceServer(grpcServer, server)
-// handlers.RegisterAccountServiceServer(grpcServer, handlers.NewAccountHandler(accountService))
+	grpcLogger := grpc.UnaryInterceptor(interceptors.GrpcLogger)
+	grpcServer := grpc.NewServer(grpcLogger, grpc.Creds(creds), grpc.StatsHandler(otelgrpc.NewServerHandler()))
 
-// 	// Register reflection service on gRPC server.
-// 	reflection.Register(grpcServer)
+	// Register health check service.
+	healthSrv := health.NewServer()
+	grpc_health_v1.RegisterHealthServer(grpcServer, healthSrv)
 
-// 	// Start gRPC server.
-// 	listener, err := net.Listen("tcp", config.GRPCServerAddress)
-// 	if err != nil {
-// 		handleError("cannot create listener", err)
-// 	}
+	// Register gRPC service.
+	userHandler.RegisterUserServiceServer(grpcServer, userHandler.NewUserHandler(userService))
 
-// 	slog.Info(fmt.Sprintf("start gRPC server at %s with TLS", listener.Addr().String()))
+	// Register reflection service on gRPC server.
+	reflection.Register(grpcServer)
 
-// 	if err := grpcServer.Serve(listener); err != nil {
-// 		handleError("failed to serve", err)
-// 	}
-// }
+	// Start gRPC server.
+	listener, err := net.Listen("tcp", config.GRPCServerAddress)
+	if err != nil {
+		handleError("cannot create listener", err)
+	}
+
+	slog.Info(fmt.Sprintf("start gRPC server at %s with TLS", listener.Addr().String()))
+
+	if err := grpcServer.Serve(listener); err != nil {
+		handleError("failed to serve", err)
+	}
+}
 
 // // runGatewayServer runs the HTTP gateway server.
 // func runGatewayServer(config util.Config, store db.Store, taskDistributor worker.TaskDistributor) {
@@ -163,8 +193,8 @@ import (
 // 	}
 // }
 
-// // handleError logs an error message and exits the program with status code 1.
-// func handleError(message string, err error) {
-// 	slog.Error(fmt.Sprintf("%s: %v", message, err))
-// 	os.Exit(1)
-// }
+// handleError logs an error message and exits the program with status code 1.
+func handleError(message string, err error) {
+	slog.Error(fmt.Sprintf("%s: %v", message, err))
+	os.Exit(1)
+}

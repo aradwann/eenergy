@@ -3,16 +3,16 @@ package account
 import (
 	"context"
 
-	"github.com/aradwann/eenergy/service/v1"
+	accService "github.com/aradwann/eenergy/service/v1/account"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type AccountHandler struct {
-	service service.AccountService
+	service accService.AccountService
 	UnimplementedAccountServiceServer
 }
 
-func NewAccountHandler(service service.AccountService) *AccountHandler {
+func NewAccountHandler(service accService.AccountService) *AccountHandler {
 	return &AccountHandler{service: service}
 }
 

@@ -1,4 +1,4 @@
-package api
+package common
 
 import (
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
@@ -6,14 +6,14 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func fieldViolation(field string, err error) *errdetails.BadRequest_FieldViolation {
+func FieldViolation(field string, err error) *errdetails.BadRequest_FieldViolation {
 	return &errdetails.BadRequest_FieldViolation{
 		Field:       field,
 		Description: err.Error(),
 	}
 }
 
-func invalidArgumentError(violations []*errdetails.BadRequest_FieldViolation) error {
+func InvalidArgumentError(violations []*errdetails.BadRequest_FieldViolation) error {
 	badRequest := &errdetails.BadRequest{FieldViolations: violations}
 	statusInvalid := status.New(codes.InvalidArgument, "invalid parameters")
 
@@ -23,7 +23,7 @@ func invalidArgumentError(violations []*errdetails.BadRequest_FieldViolation) er
 	}
 	return statusDetails.Err()
 }
-func unauthenticatedError(err error) error {
+func UnauthenticatedError(err error) error {
 
 	return status.Errorf(codes.Unauthenticated, "unauthorized: %s", err)
 }

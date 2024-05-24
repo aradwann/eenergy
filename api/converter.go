@@ -6,15 +6,6 @@ package api
 // 	"google.golang.org/protobuf/types/known/timestamppb"
 // )
 
-// func convertUser(user db.User) *pb.User {
-// 	return &pb.User{
-// 		Username:          user.Username,
-// 		FullName:          user.FullName,
-// 		Email:             user.Email,
-// 		PasswordChangedAt: timestamppb.New(user.PasswordChangedAt),
-// 		CreatedAt:         timestamppb.New(user.CreatedAt),
-// 	}
-// }
 // func convertTransfer(transfer db.Transfer) *pb.Transfer {
 // 	return &pb.Transfer{
 // 		Id:            transfer.ID,

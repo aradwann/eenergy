@@ -1,4 +1,4 @@
-package api
+package account
 
 // import (
 // 	"context"
@@ -16,114 +16,104 @@ package api
 // 	"google.golang.org/grpc/status"
 // )
 
-// func TestListAccountEntriesAPI(t *testing.T) {
+// func TestListUserAccountsAPI(t *testing.T) {
 // 	user, _ := randomUser(t, util.UserRole)
 // 	admin, _ := randomUser(t, util.AdminRole)
-// 	account := randomAccount(user)
 
-// 	entries := []db.Entry{
+// 	accounts := []db.Account{
 // 		{
 // 			ID:        1,
-// 			AccountID: account.ID,
-// 			Amount:    util.RandomAmount(),
+// 			Owner:     user.Username,
+// 			Balance:   1,
+// 			Unit:      util.KWH,
 // 			CreatedAt: time.Now(),
 // 		},
 // 		{
 // 			ID:        2,
-// 			AccountID: account.ID,
-// 			Amount:    util.RandomAmount(),
+// 			Owner:     user.Username,
+// 			Balance:   2,
+// 			Unit:      util.KWH,
 // 			CreatedAt: time.Now(),
 // 		},
 // 	}
 // 	testCases := []struct {
 // 		name          string
-// 		req           *pb.ListAccountEntriesRequest
+// 		req           *pb.ListUserAccountsRequest
 // 		buildStubs    func(store *mockdb.MockStore)
 // 		buildContext  func(t *testing.T, tokenMaker token.Maker) context.Context
-// 		checkResponse func(t *testing.T, res *pb.ListAccountEntriesResponse, err error)
+// 		checkResponse func(t *testing.T, res *pb.ListUserAccountsResponse, err error)
 // 	}{
 // 		{
 // 			name: "OK",
-// 			req: &pb.ListAccountEntriesRequest{
-// 				AccountId: account.ID,
-// 				Limit:     5,
-// 				Offset:    0,
+// 			req: &pb.ListUserAccountsRequest{
+// 				Limit:  5,
+// 				Offset: 0,
 // 			},
 // 			buildStubs: func(store *mockdb.MockStore) {
-
-// 				store.EXPECT().
-// 					GetAccount(gomock.Any(), gomock.Eq(account.ID)).
-// 					Times(1).
-// 					Return(account, nil)
-
-// 				arg := db.ListEntriesParams{
-// 					AccountID: account.ID,
-// 					Limit:     5,
-// 					Offset:    0,
+// 				arg := db.ListAccountsParams{
+// 					Owner:  user.Username,
+// 					Limit:  5,
+// 					Offset: 0,
 // 				}
+
 // 				store.EXPECT().
-// 					ListEntries(gomock.Any(), gomock.Eq(arg)).
+// 					ListAccounts(gomock.Any(), gomock.Eq(arg)).
 // 					Times(1).
-// 					Return(entries, nil)
+// 					Return(accounts, nil)
 // 			},
 // 			buildContext: func(t *testing.T, tokenMaker token.Maker) context.Context {
 // 				return newNewContextWithBearerToken(t, tokenMaker, user.Username, user.Role, time.Minute)
 // 			},
-// 			checkResponse: func(t *testing.T, res *pb.ListAccountEntriesResponse, err error) {
+// 			checkResponse: func(t *testing.T, res *pb.ListUserAccountsResponse, err error) {
 // 				require.NoError(t, err)
 // 				require.NotNil(t, res)
 
-// 				require.Len(t, res.Entries, 2)
+// 				require.Len(t, res.Accounts, 2)
 // 			},
 // 		},
 // 		{
 // 			name: "OK by Admin",
-// 			req: &pb.ListAccountEntriesRequest{
-// 				AccountId: account.ID,
-// 				Limit:     5,
-// 				Offset:    0,
+// 			req: &pb.ListUserAccountsRequest{
+// 				Username: &user.Username,
+// 				Limit:    5,
+// 				Offset:   0,
 // 			},
 // 			buildStubs: func(store *mockdb.MockStore) {
-// 				store.EXPECT().
-// 					GetAccount(gomock.Any(), gomock.Eq(account.ID)).
-// 					Times(1).
-// 					Return(account, nil)
-
-// 				arg := db.ListEntriesParams{
-// 					AccountID: account.ID,
-// 					Limit:     5,
-// 					Offset:    0,
+// 				arg := db.ListAccountsParams{
+// 					Owner:  user.Username,
+// 					Limit:  5,
+// 					Offset: 0,
 // 				}
 
 // 				store.EXPECT().
-// 					ListEntries(gomock.Any(), gomock.Eq(arg)).
+// 					ListAccounts(gomock.Any(), gomock.Eq(arg)).
 // 					Times(1).
-// 					Return(entries, nil)
+// 					Return(accounts, nil)
 // 			},
 // 			buildContext: func(t *testing.T, tokenMaker token.Maker) context.Context {
 // 				return newNewContextWithBearerToken(t, tokenMaker, admin.Username, admin.Role, time.Minute)
 // 			},
-// 			checkResponse: func(t *testing.T, res *pb.ListAccountEntriesResponse, err error) {
+// 			checkResponse: func(t *testing.T, res *pb.ListUserAccountsResponse, err error) {
 // 				require.NoError(t, err)
 // 				require.NotNil(t, res)
 
-// 				require.Len(t, res.Entries, 2)
+// 				require.Len(t, res.Accounts, 2)
 // 			},
 // 		},
 // 		{
 // 			name: "ExpiredToken",
-// 			req:  &pb.ListAccountEntriesRequest{},
+// 			req:  &pb.ListUserAccountsRequest{},
 // 			buildStubs: func(store *mockdb.MockStore) {
 
 // 				store.EXPECT().
-// 					ListEntries(gomock.Any(), gomock.Any()).
+// 					ListAccounts(gomock.Any(), gomock.Any()).
 // 					Times(0)
 
 // 			},
 // 			buildContext: func(t *testing.T, tokenMaker token.Maker) context.Context {
 // 				return newNewContextWithBearerToken(t, tokenMaker, user.Username, user.Role, -time.Minute)
 // 			},
-// 			checkResponse: func(t *testing.T, res *pb.ListAccountEntriesResponse, err error) {
+// 			checkResponse: func(t *testing.T, res *pb.ListUserAccountsResponse, err error) {
 // 				require.Error(t, err)
 // 				st, ok := status.FromError(err)
 // 				require.True(t, ok)
@@ -144,7 +134,7 @@ package api
 
 // 			ctx := tc.buildContext(t, server.tokenMaker)
 
-// 			res, err := server.ListAccountEntries(ctx, tc.req)
+// 			res, err := server.ListUserAccounts(ctx, tc.req)
 // 			tc.checkResponse(t, res, err)
 // 		})
 // 	}
