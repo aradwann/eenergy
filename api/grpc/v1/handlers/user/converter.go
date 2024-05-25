@@ -1,8 +1,11 @@
 package user
 
-import timestamppb "google.golang.org/protobuf/types/known/timestamppb"
+import (
+	"github.com/aradwann/eenergy/entities"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
+)
 
-func convertUser(user db.User) *User {
+func convertUser(user *entities.User) *User {
 	return &User{
 		Username:          user.Username,
 		FullName:          user.FullName,

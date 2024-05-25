@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aradwann/eenergy/entities"
 	"github.com/aradwann/eenergy/util"
 	"github.com/stretchr/testify/require"
 )
@@ -29,7 +30,7 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func CreateRandomUser(t *testing.T) *User {
+func CreateRandomUser(t *testing.T) *entities.User {
 	hashedPassword, err := util.HashPassword(util.RandomString(6))
 	require.NoError(t, err)
 

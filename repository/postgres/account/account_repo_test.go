@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aradwann/eenergy/entities"
 	"github.com/aradwann/eenergy/repository/postgres/common"
 	"github.com/aradwann/eenergy/repository/postgres/user"
 	"github.com/aradwann/eenergy/util"
@@ -15,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func CreateRandomUser(t *testing.T) *user.User {
+func CreateRandomUser(t *testing.T) *entities.User {
 	hashedPassword, err := util.HashPassword(util.RandomString(6))
 	require.NoError(t, err)
 

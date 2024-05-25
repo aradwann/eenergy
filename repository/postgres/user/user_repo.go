@@ -7,26 +7,15 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
-	"time"
 
+	"github.com/aradwann/eenergy/entities"
 	"github.com/aradwann/eenergy/repository/postgres/common"
 )
 
-type User struct {
-	Username          string    `json:"username"`
-	HashedPassword    string    `json:"hashed_password"`
-	FullName          string    `json:"full_name"`
-	Email             string    `json:"email"`
-	PasswordChangedAt time.Time `json:"password_changed_at"`
-	CreatedAt         time.Time `json:"created_at"`
-	IsEmailVerified   bool      `json:"is_email_verified"`
-	Role              string    `json:"role"`
-}
-
 type UserRepository interface {
-	CreateUser(ctx context.Context, arg CreateUserParams) (*User, error)
-	GetUser(ctx context.Context, username string) (*User, error)
-	UpdateUser(ctx context.Context, arg UpdateUserParams) (*User, error)
+	CreateUser(ctx context.Context, arg CreateUserParams) (*entities.User, error)
+	GetUser(ctx context.Context, username string) (*entities.User, error)
+	UpdateUser(ctx context.Context, arg UpdateUserParams) (*entities.User, error)
 }
 
 type userRepository struct {
@@ -47,8 +36,8 @@ type CreateUserParams struct {
 	Email          string `json:"email"`
 }
 
-func (r *userRepository) CreateUser(ctx context.Context, arg CreateUserParams) (*User, error) {
-	user := &User{}
+func (r *userRepository) CreateUser(ctx context.Context, arg CreateUserParams) (*entities.User, error) {
+	user := &entities.User{}
 	slog.Info("CreateUser", slog.String("username", arg.Username))
 	row := common.CallStoredFunction(ctx, r.db, "create_user",
 		arg.Username,
@@ -64,8 +53,8 @@ func (r *userRepository) CreateUser(ctx context.Context, arg CreateUserParams) (
 	return user, nil
 }
 
-func (r *userRepository) GetUser(ctx context.Context, username string) (*User, error) {
-	user := &User{}
+func (r *userRepository) GetUser(ctx context.Context, username string) (*entities.User, error) {
+	user := &entities.User{}
 	row := common.CallStoredFunction(ctx, r.db, "get_user", username)
 	if err := scanUserFromRow(row, user); err != nil {
 		return nil, err
@@ -82,8 +71,8 @@ type UpdateUserParams struct {
 	IsEmailVerified   sql.NullBool   `json:"is_email_verified"`
 }
 
-func (r *userRepository) UpdateUser(ctx context.Context, arg UpdateUserParams) (*User, error) {
-	user := &User{}
+func (r *userRepository) UpdateUser(ctx context.Context, arg UpdateUserParams) (*entities.User, error) {
+	user := &entities.User{}
 	params := []interface{}{
 		arg.Username,
 		arg.HashedPassword,
@@ -101,7 +90,7 @@ func (r *userRepository) UpdateUser(ctx context.Context, arg UpdateUserParams) (
 	return user, nil
 }
 
-func scanUserFromRow(row *sql.Row, user *User) error {
+func scanUserFromRow(row *sql.Row, user *entities.User) error {
 	if row == nil {
 		return fmt.Errorf("row is nil")
 	}

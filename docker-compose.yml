@@ -1,4 +1,3 @@
-
 services:
   postgres:
     image: postgis/postgis:16-3.4-alpine
@@ -11,7 +10,7 @@ services:
     volumes:
       - data-volume:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "root", "-d", "postgres"]
+      test: [ "CMD", "pg_isready", "-U", "root", "-d", "postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -29,7 +28,7 @@ services:
     ports:
       - "${REDIS_PORT}:${REDIS_PORT}"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -49,10 +48,12 @@ services:
       - OTEL_SERVICE_NAME
 
     depends_on:
-      postgres:  # Wait for postgres to start
-        condition: service_healthy  # Only start after postgres is healthy
-      redis:  # Wait for redis to start
-        condition: service_healthy  # Only start after redis is healthy
+      postgres:
+        # Wait for postgres to start
+        condition: service_healthy # Only start after postgres is healthy
+      redis:
+        # Wait for redis to start
+        condition: service_healthy # Only start after redis is healthy
       otel-collector:
         condition: service_started
 
@@ -99,8 +100,8 @@ services:
     depends_on:
       - loki
       - prometheus
-      - jaeger 
-  
+      - jaeger
+
   # metrics containers 
   prometheus:
     image: prom/prometheus:latest
@@ -116,7 +117,7 @@ services:
   jaeger:
     image: jaegertracing/all-in-one:latest
     ports:
-      - "${JAEGER_SERVICE_PORT}"         # Jaeger UI
+      - "${JAEGER_SERVICE_PORT}" # Jaeger UI
       - "${OTEL_COLLECTOR_PORT_GRPC}"
     environment:
       - COLLECTOR_OTLP_ENABLED=true
