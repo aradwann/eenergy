@@ -65,23 +65,6 @@ func (s *userService) CreateUser(ctx context.Context, createUserParams CreateUse
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %s", err)
 	}
-	// arg := db.CreateUserTxParams{
-	// 	CreateUserParams: db.CreateUserParams{
-	// 		Username:       req.GetUsername(),
-	// 		HashedPassword: hashedPassword,
-	// 		FullName:       req.GetFullName(),
-	// 		Email:          req.GetEmail(),
-	// 	},
-	// AfterCreate: func(user db.User) error {
-	// 	taskPayload := &worker.PayloadSendVerifyEmail{Username: user.Username}
-	// 	opts := []asynq.Option{
-	// 		asynq.MaxRetry(10),
-	// 		asynq.ProcessIn(10 * time.Second), // make room for the DB to commit the transaction before the task is picked up by the worker, otherwise the worker might not find the record
-	// 		asynq.Queue(worker.QueueCritical),
-	// 	}
-	// 	return server.taskDistributor.DistributeTaskSendVerifyEmail(ctx, taskPayload, opts...)
-	// },
-	// }
 	res, err := s.userRepo.CreateUserTx(ctx, DataRepo.CreateUserTxParams{
 		CreateUserParams: DataRepo.CreateUserParams{
 			Username:       createUserParams.Username,

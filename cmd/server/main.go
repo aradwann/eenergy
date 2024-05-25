@@ -190,18 +190,6 @@ func runGrpcServer(config util.Config, userService userService.UserService) {
 // 	}
 // }
 
-// // runTaskProcessor runs the task processor.
-// func runTaskProcessor(config util.Config, redisOpts asynq.RedisClientOpt, store db.Store) {
-// 	mailer := mail.NewGmailSender(config.EmailSenderName, config.EmailSenderAddress, config.EmailSenderPassword)
-
-// 	taskProcessor := worker.NewRedisTaskProcessor(redisOpts, store, mailer)
-// 	slog.Info("start task processor")
-// 	err := taskProcessor.Start()
-// 	if err != nil {
-// 		handleError("failed to start task processor", err)
-// 	}
-// }
-
 // handleError logs an error message and exits the program with status code 1.
 func handleError(message string, err error) {
 	slog.Error(fmt.Sprintf("%s: %v", message, err))
