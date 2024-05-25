@@ -14,9 +14,12 @@ import (
 	userHandler "github.com/aradwann/eenergy/api/grpc/v1/handlers/user"
 	"github.com/aradwann/eenergy/api/grpc/v1/interceptors"
 	"github.com/aradwann/eenergy/repository/postgres"
+	emailRepo "github.com/aradwann/eenergy/repository/postgres/email"
 	userRepo "github.com/aradwann/eenergy/repository/postgres/user"
+	"github.com/aradwann/eenergy/repository/redis"
 	userService "github.com/aradwann/eenergy/service/v1/user"
 	"github.com/aradwann/eenergy/telemetry"
+	"github.com/aradwann/eenergy/worker"
 
 	"github.com/aradwann/eenergy/util"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -50,30 +53,36 @@ func main() {
 	}
 
 	// Initialize logger.
-	telemetry.InitLogger(config)
+	logger := telemetry.InitLogger(config)
 
 	// Initialize Database
 	db := postgres.InitDatabase(config)
 	defer db.Close()
 
 	// Set up Redis options for task distribution.
-	// redisOpts := asynq.RedisClientOpt{
-	// 	Addr: config.RedisAddress,
-	// }
+
+	// redisClient := redis.NewClient(redisAddr)
+	// defer redisClient.Close()
 
 	// Run task processor and HTTP gateway server concurrently.
-	// taskDistributor := worker.NewRedisTaskDistributor(redisOpts)
-	// go runTaskProcessor(config, redisOpts, store)
 	// go runGatewayServer(config, store, taskDistributor)
+	// Initialize job repository
+	jobRepo := redis.NewJobRepository(config.RedisAddress, logger)
 
 	// Initialize repositories
-	userRepo := userRepo.NewUserRepository(db)
+	userRepo := userRepo.NewUserRepository(db, logger)
+	emailRepo := emailRepo.NewEmailRepository(db, logger)
+
+	// cacheRepo := redis.NewCacheRepository(redisClient, logger)
 
 	// Initialize services
-	userService := userService.NewUserService(userRepo)
+	userService := userService.NewUserService(userRepo, jobRepo, logger)
 
 	// Run gRPC server.
 	runGrpcServer(config, userService)
+
+	go worker.StartTaskProcessor(config, userRepo, emailRepo, logger)
+
 }
 
 // runGrpcServer runs the gRPC server.

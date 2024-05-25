@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+	"log/slog"
 	"time"
 
 	"github.com/aradwann/eenergy/repository/postgres/common"
@@ -26,14 +27,18 @@ type EmailRepository interface {
 }
 
 type emailRepository struct {
-	db *sql.DB
+	db     *sql.DB
+	logger *slog.Logger
 }
 
 // https://github.com/uber-go/guide/blob/master/style.md#verify-interface-compliance
 var _ EmailRepository = (*emailRepository)(nil)
 
-func NewEmailRepository(db *sql.DB) EmailRepository {
-	return &emailRepository{db: db}
+func NewEmailRepository(db *sql.DB, logger *slog.Logger) EmailRepository {
+	return &emailRepository{
+		db:     db,
+		logger: logger,
+	}
 }
 
 type CreateVerifyEmailParams struct {

@@ -13,44 +13,27 @@ import (
 )
 
 type UserRepository interface {
-	CreateUser(ctx context.Context, arg CreateUserParams) (*entities.User, error)
+	CreateUserTx(ctx context.Context, arg CreateUserTxParams) (CreateUserTxResult, error)
 	GetUser(ctx context.Context, username string) (*entities.User, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (*entities.User, error)
 }
 
 type userRepository struct {
-	db *sql.DB
+	db          *sql.DB
+	transaction *common.TransactionManager
+	logger      *slog.Logger
 }
 
 // https://github.com/uber-go/guide/blob/master/style.md#verify-interface-compliance
 var _ UserRepository = (*userRepository)(nil)
 
-func NewUserRepository(db *sql.DB) UserRepository {
-	return &userRepository{db: db}
-}
-
-type CreateUserParams struct {
-	Username       string `json:"username"`
-	HashedPassword string `json:"hashed_password"`
-	FullName       string `json:"fullname"`
-	Email          string `json:"email"`
-}
-
-func (r *userRepository) CreateUser(ctx context.Context, arg CreateUserParams) (*entities.User, error) {
-	user := &entities.User{}
-	slog.Info("CreateUser", slog.String("username", arg.Username))
-	row := common.CallStoredFunction(ctx, r.db, "create_user",
-		arg.Username,
-		arg.HashedPassword,
-		arg.FullName,
-		arg.Email)
-
-	err := scanUserFromRow(row, user)
-	if err != nil {
-		slog.Error("error scaning the created user", slog.String("error message", err.Error()))
-		return user, err
+// NewUserRepository creates a new UserRepository.
+func NewUserRepository(db *sql.DB, logger *slog.Logger) UserRepository {
+	return &userRepository{
+		db:          db,
+		transaction: common.NewTransactionManager(db),
+		logger:      logger,
 	}
-	return user, nil
 }
 
 func (r *userRepository) GetUser(ctx context.Context, username string) (*entities.User, error) {

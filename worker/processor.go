@@ -1,49 +1,76 @@
 package worker
 
-// const (
-// 	QueueCritical = "critical"
-// 	QueueDefault  = "default"
-// 	QueueLow      = "low"
-// )
+import (
+	"context"
+	"log/slog"
+	"os"
 
-// type TaskProcessor interface {
-// 	Start() error
-// 	ProcessTaskSendVerifyEmail(ctx context.Context, task *asynq.Task) error
-// }
+	"github.com/aradwann/eenergy/mail"
+	emailDB "github.com/aradwann/eenergy/repository/postgres/email"
+	userDB "github.com/aradwann/eenergy/repository/postgres/user"
+	"github.com/aradwann/eenergy/util"
+	"github.com/hibiken/asynq"
+)
 
-// type RedisTaskProcessor struct {
-// 	server *asynq.Server
-// 	store  db.Store
-// 	mailer mail.EmailSender
-// }
+const (
+	QueueCritical = "critical"
+	QueueDefault  = "default"
+	QueueLow      = "low"
+)
 
-// func NewRedisTaskProcessor(redisOpt asynq.RedisClientOpt, store db.Store, mailer mail.EmailSender) TaskProcessor {
-// 	server := asynq.NewServer(redisOpt, asynq.Config{
-// 		Queues: map[string]int{
-// 			QueueCritical: 6,
-// 			QueueDefault:  3,
-// 			QueueLow:      1,
-// 		},
-// 		ErrorHandler: asynq.ErrorHandlerFunc(func(ctx context.Context, task *asynq.Task, err error) {
-// 			slog.LogAttrs(ctx,
-// 				slog.LevelError,
-// 				"process task failed",
-// 				slog.String("err", err.Error()),
-// 				slog.String("type", task.Type()),
-// 				slog.String("payload", string(task.Payload())))
-// 		}),
-// 		Logger: NewLogger(),
-// 	})
+type TaskProcessor interface {
+	start() error
+}
 
-// 	return &RedisTaskProcessor{
-// 		server: server,
-// 		store:  store,
-// 		mailer: mailer,
-// 	}
-// }
+type RedisTaskProcessor struct {
+	server       *asynq.Server
+	emailhandler EmailHandler
+	logger       *slog.Logger
+}
 
-// func (processor *RedisTaskProcessor) Start() error {
-// 	mux := asynq.NewServeMux()
-// 	mux.HandleFunc(TaskSendVerifyEmail, processor.ProcessTaskSendVerifyEmail)
-// 	return processor.server.Start(mux)
-// }
+func NewRedisTaskProcessor(redisOpt asynq.RedisClientOpt, emailhandler EmailHandler, logger *slog.Logger) TaskProcessor {
+	server := asynq.NewServer(redisOpt, asynq.Config{
+		Queues: map[string]int{
+			QueueCritical: 6,
+			QueueDefault:  3,
+			QueueLow:      1,
+		},
+		ErrorHandler: asynq.ErrorHandlerFunc(func(ctx context.Context, task *asynq.Task, err error) {
+			logger.LogAttrs(ctx,
+				slog.LevelError,
+				"process task failed",
+				slog.String("err", err.Error()),
+				slog.String("type", task.Type()),
+				slog.String("payload", string(task.Payload())))
+		}),
+		Logger: NewLogger(),
+	})
+
+	return &RedisTaskProcessor{
+		server:       server,
+		emailhandler: emailhandler,
+		logger:       logger,
+	}
+}
+
+func (processor *RedisTaskProcessor) start() error {
+	mux := asynq.NewServeMux()
+	mux.HandleFunc(TypeEmailVerification, processor.emailhandler.HandleEmailVerificationTask)
+	return processor.server.Start(mux)
+}
+
+// StartTaskProcessor runs the task processor.
+func StartTaskProcessor(config util.Config, userRepo userDB.UserRepository, emailRepo emailDB.EmailRepository, logger *slog.Logger) {
+	redisOpts := asynq.RedisClientOpt{
+		Addr: config.RedisAddress,
+	}
+	mailer := mail.NewGmailSender(config.EmailSenderName, config.EmailSenderAddress, config.EmailSenderPassword)
+	emailHandler := NewEmailHandler(userRepo, emailRepo, mailer, logger)
+	taskProcessor := NewRedisTaskProcessor(redisOpts, emailHandler, logger)
+	logger.Info("start task processor")
+	err := taskProcessor.start()
+	if err != nil {
+		logger.Error("failed to start redis Task processor (workers) ", err)
+		os.Exit(1)
+	}
+}

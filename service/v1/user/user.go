@@ -4,10 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
 
 	"github.com/aradwann/eenergy/entities"
 	DataRepo "github.com/aradwann/eenergy/repository/postgres/user"
-	CacheRepo "github.com/aradwann/eenergy/repository/redis"
+	"github.com/aradwann/eenergy/repository/redis"
 	"github.com/aradwann/eenergy/util"
 )
 
@@ -18,14 +19,18 @@ type UserService interface {
 }
 
 type userService struct {
-	userRepo  DataRepo.UserRepository
-	cacheRepo CacheRepo.CacheRepository
+	userRepo DataRepo.UserRepository
+	jobRepo  redis.JobRepository
+	// cacheRepo redis.CacheRepository
+	logger *slog.Logger
 }
 
-func NewUserService(userRepo DataRepo.UserRepository) UserService {
+func NewUserService(userRepo DataRepo.UserRepository, jobRepo redis.JobRepository, logger *slog.Logger) UserService {
 	return &userService{
 		userRepo: userRepo,
+		jobRepo:  jobRepo,
 		// cacheRepo: cacheRepo,
+		logger: logger,
 	}
 }
 
@@ -77,12 +82,23 @@ func (s *userService) CreateUser(ctx context.Context, createUserParams CreateUse
 	// 	return server.taskDistributor.DistributeTaskSendVerifyEmail(ctx, taskPayload, opts...)
 	// },
 	// }
-	return s.userRepo.CreateUser(ctx, DataRepo.CreateUserParams{
-		Username:       createUserParams.Username,
-		HashedPassword: hashedPassword,
-		FullName:       createUserParams.FullName,
-		Email:          createUserParams.Email,
+	res, err := s.userRepo.CreateUserTx(ctx, DataRepo.CreateUserTxParams{
+		CreateUserParams: DataRepo.CreateUserParams{
+			Username:       createUserParams.Username,
+			HashedPassword: hashedPassword,
+			FullName:       createUserParams.FullName,
+			Email:          createUserParams.Email,
+		},
+		AfterCreate: func(user *entities.User) error {
+			return s.jobRepo.EnqueueVerificationEmail(ctx, user.Username, user.Email)
+		},
 	})
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to create user: %s", err)
+	}
+
+	return res.User, nil
 }
 
 func (s *userService) UpdateUser(ctx context.Context, username string) (*entities.User, error) {
