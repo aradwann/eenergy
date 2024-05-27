@@ -43,7 +43,7 @@ func NewRedisTaskProcessor(redisOpt asynq.RedisClientOpt, emailhandler EmailHand
 				slog.String("type", task.Type()),
 				slog.String("payload", string(task.Payload())))
 		}),
-		Logger: NewLogger(),
+		Logger: NewLogger(logger),
 	})
 
 	return &RedisTaskProcessor{

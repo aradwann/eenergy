@@ -78,11 +78,9 @@ func main() {
 	// Initialize services
 	userService := userService.NewUserService(userRepo, jobRepo, logger)
 
+	go worker.StartTaskProcessor(config, userRepo, emailRepo, logger)
 	// Run gRPC server.
 	runGrpcServer(config, userService)
-
-	go worker.StartTaskProcessor(config, userRepo, emailRepo, logger)
-
 }
 
 // runGrpcServer runs the gRPC server.
