@@ -3,11 +3,10 @@ package migrate
 import (
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"log/slog"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/pgx"
@@ -15,36 +14,39 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
+// RunDBMigrations runs database migrations using the provided database connection and migrations URL.
 func RunDBMigrations(db *sql.DB, migrationsURL string) {
-
 	driver, err := pgx.WithInstance(db, &pgx.Config{})
 	if err != nil {
-		slog.Error("cannot create postgres driver %s", err)
+		slog.Error("cannot create postgres driver", slog.String("error", err.Error()))
+		os.Exit(1) // Exit on error
 	}
-	migration, err := migrate.NewWithDatabaseInstance(
-		migrationsURL,
-		"eenergy", driver)
+
+	migration, err := migrate.NewWithDatabaseInstance(migrationsURL, "eenergy", driver)
 	if err != nil {
-		// log.Fatal().Msg("cannot create new migrate instance")
-		slog.Error("cannot create new migrate instance %s", err)
+		slog.Error("cannot create new migrate instance", slog.String("error", err.Error()))
+		os.Exit(1) // Exit on error
 	}
+
 	err = migration.Up()
 	if err != nil && err != migrate.ErrNoChange {
-		slog.Error("failed to run migrate up %s", err)
-
+		slog.Error("failed to run migrate up", slog.String("error", err.Error()))
+		os.Exit(1) // Exit on error
 	}
 
 	slog.Info("DB migrated successfully")
 
+	// Concatenate the migrations URL with "/functions"
+	functionsMigrationsURL := filepath.Join(migrationsURL, "functions")
+
 	// Run unversioned migrations
-	err = runUnversionedMigrations(db, "./migrations/functions")
+	err = runUnversionedMigrations(db, functionsMigrationsURL)
 	if err != nil {
-		slog.Error("Error applying unversioned migrations:", err)
-		os.Exit(1)
+		slog.Error("Error applying unversioned migrations:", slog.String("error", err.Error()))
+		os.Exit(1) // Exit on error
 	}
 
 	slog.Info("Unversioned migrations applied successfully")
-
 }
 
 // Get a list of SQL files in the migration directory
@@ -63,7 +65,6 @@ func getSQLFiles(migrationDir string) ([]string, error) {
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +73,6 @@ func getSQLFiles(migrationDir string) ([]string, error) {
 }
 
 func runUnversionedMigrations(db *sql.DB, migrationDir string) error {
-
 	sqlFiles, err := getSQLFiles(migrationDir)
 	if err != nil {
 		return err
