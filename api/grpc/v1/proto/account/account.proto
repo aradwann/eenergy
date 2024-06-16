@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package account.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/aradwann/eenergy/api/grpc/v1/handlers/account";
+
+service AccountService {
+  rpc GetAccount(GetAccountRequest) returns (GetAccountResponse) {}
+  rpc CreateAccount(CreateAccountRequest) returns (CreateAccountResponse) {}
+  rpc ListUserAccounts(ListUserAccountsRequest) returns (ListUserAccountsResponse) {}
+  rpc ListAccountEntries(ListAccountEntriesRequest) returns (ListAccountEntriesResponse) {}
+}
+
+message GetAccountRequest {
+  int64 id = 1;
+}
+
+message GetAccountResponse {
+  Account account = 1;
+}
+
+message CreateAccountRequest {
+  string username = 1;
+}
+
+message CreateAccountResponse {
+  Account account = 1;
+}
+
+message ListUserAccountsRequest {
+  optional string username = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
+message ListUserAccountsResponse {
+  repeated Account accounts = 1;
+}
+
+message ListAccountEntriesRequest {
+  int64 account_id = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
+message ListAccountEntriesResponse {
+  repeated Entry entries = 1;
+}
+
+message Account {
+  int64 id = 1;
+  string owner = 2;
+  int64 balance = 3;
+  string unit = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+message Entry {
+  int64 id = 1;
+  int64 account_id = 2;
+  int64 amount = 3;
+  google.protobuf.Timestamp created_at = 5;
+}

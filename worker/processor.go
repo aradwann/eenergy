@@ -3,9 +3,12 @@ package worker
 import (
 	"context"
 	"log/slog"
+	"os"
 
-	db "github.com/aradwann/eenergy/db/store"
 	"github.com/aradwann/eenergy/mail"
+	emailDB "github.com/aradwann/eenergy/repository/postgres/email"
+	userDB "github.com/aradwann/eenergy/repository/postgres/user"
+	"github.com/aradwann/eenergy/util"
 	"github.com/hibiken/asynq"
 )
 
@@ -16,17 +19,16 @@ const (
 )
 
 type TaskProcessor interface {
-	Start() error
-	ProcessTaskSendVerifyEmail(ctx context.Context, task *asynq.Task) error
+	start() error
 }
 
 type RedisTaskProcessor struct {
-	server *asynq.Server
-	store  db.Store
-	mailer mail.EmailSender
+	server       *asynq.Server
+	emailhandler EmailHandler
+	logger       *slog.Logger
 }
 
-func NewRedisTaskProcessor(redisOpt asynq.RedisClientOpt, store db.Store, mailer mail.EmailSender) TaskProcessor {
+func NewRedisTaskProcessor(redisOpt asynq.RedisClientOpt, emailhandler EmailHandler, logger *slog.Logger) TaskProcessor {
 	server := asynq.NewServer(redisOpt, asynq.Config{
 		Queues: map[string]int{
 			QueueCritical: 6,
@@ -34,25 +36,41 @@ func NewRedisTaskProcessor(redisOpt asynq.RedisClientOpt, store db.Store, mailer
 			QueueLow:      1,
 		},
 		ErrorHandler: asynq.ErrorHandlerFunc(func(ctx context.Context, task *asynq.Task, err error) {
-			slog.LogAttrs(ctx,
+			logger.LogAttrs(ctx,
 				slog.LevelError,
 				"process task failed",
 				slog.String("err", err.Error()),
 				slog.String("type", task.Type()),
 				slog.String("payload", string(task.Payload())))
 		}),
-		Logger: NewLogger(),
+		Logger: NewLogger(logger),
 	})
 
 	return &RedisTaskProcessor{
-		server: server,
-		store:  store,
-		mailer: mailer,
+		server:       server,
+		emailhandler: emailhandler,
+		logger:       logger,
 	}
 }
 
-func (processor *RedisTaskProcessor) Start() error {
+func (processor *RedisTaskProcessor) start() error {
 	mux := asynq.NewServeMux()
-	mux.HandleFunc(TaskSendVerifyEmail, processor.ProcessTaskSendVerifyEmail)
+	mux.HandleFunc(TypeEmailVerification, processor.emailhandler.HandleEmailVerificationTask)
 	return processor.server.Start(mux)
+}
+
+// StartTaskProcessor runs the task processor.
+func StartTaskProcessor(config util.Config, userRepo userDB.UserRepository, emailRepo emailDB.EmailRepository, logger *slog.Logger) {
+	redisOpts := asynq.RedisClientOpt{
+		Addr: config.RedisAddress,
+	}
+	mailer := mail.NewGmailSender(config.EmailSenderName, config.EmailSenderAddress, config.EmailSenderPassword)
+	emailHandler := NewEmailHandler(userRepo, emailRepo, mailer, logger)
+	taskProcessor := NewRedisTaskProcessor(redisOpts, emailHandler, logger)
+	logger.Info("start task processor")
+	err := taskProcessor.start()
+	if err != nil {
+		logger.Error("failed to start redis Task processor (workers) ", err)
+		os.Exit(1)
+	}
 }

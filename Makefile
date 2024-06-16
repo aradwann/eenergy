@@ -5,24 +5,20 @@ DB_PASS=secret
 DB_HOST=localhost
 DB_PORT=5432
 DB_SOURCE=postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable
-MIGRATIONS_PATH=db/migrations
-CONFIG_PATH=dev-certs/
-DOCKER_CONTAINER_NAME=postgres
+MIGRATIONS_PATH=migrations
+CERT_PATH=dev-certs/
 
 # Setup
 init:
-	mkdir -p ${CONFIG_PATH}
+# create dev certs path
+	mkdir -p ${CERT_PATH} 
 
 # Database Operations
-createdb:
-	docker exec -it ${DOCKER_CONTAINER_NAME} createdb --username=${DB_USER} --owner=${DB_USER} ${DB_NAME}
-
-dropdb:
-	docker exec -it ${DOCKER_CONTAINER_NAME} dropdb ${DB_NAME}
+# TODO: impl handy DB operations
 
 # Migration
 migrateup:
-	go run db/scripts/migrate.go
+	go run cmd/migrate/main.go
 
 migrateup1:
 	migrate -path $(MIGRATIONS_PATH) -database $(DB_SOURCE) -verbose up 1
@@ -37,8 +33,8 @@ createmigration:
 	migrate create -ext sql -dir $(MIGRATIONS_PATH) -seq "$(filter-out $@,$(MAKECMDGOALS))"
 
 # Mocks
-mock:
-	mockgen -package mockdb -destination db/mock/store.go github.com/aradwann/eenergy/db/store Store
+mock: # TODO: edit to comply with the new architecture
+	mockgen -package mockdb -destination repository/mock/store.go github.com/aradwann/eenergy/repository/store Store
 	mockgen -package mockmail -destination mail/mock/sender.go github.com/aradwann/eenergy/mail EmailSender
 	mockgen -package mockwk -destination worker/mock/distributor.go github.com/aradwann/eenergy/worker TaskDistributor
 	mockgen -package mockwk -destination worker/mock/processor.go github.com/aradwann/eenergy/worker TaskProcessor
@@ -56,13 +52,15 @@ server:
 
 # Protocol Buffers
 protoc: 
-	rm -f pb/*.go
-	rm -f doc/swagger/*.swagger.json
-	protoc --proto_path=proto --go_out=pb --go_opt=paths=source_relative \
-	--go-grpc_out=pb --go-grpc_opt=paths=source_relative \
-	--grpc-gateway_out=pb --grpc-gateway_opt=paths=source_relative \
-	--openapiv2_out=doc/swagger --openapiv2_opt=allow_merge=true,merge_file_name=eenergy \
-	proto/*.proto
+	protoc --proto_path=api/grpc/v1/proto \
+  	--go_out=paths=source_relative:api/grpc/v1/handlers \
+  	--go-grpc_out=paths=source_relative:api/grpc/v1/handlers \
+  	--grpc-gateway_out=paths=source_relative:api/grpc/v1/handlers \
+	--grpc-gateway_opt generate_unbound_methods=true \
+	--openapiv2_out=assets/doc/swagger --openapiv2_opt=allow_merge=true,merge_file_name=eenergy,generate_unbound_methods=true \
+  	api/grpc/v1/proto/**/*.proto 
+
+#TODO: try to use grpc-gateway config through external config file 
 
 # gRPC Client
 evans:

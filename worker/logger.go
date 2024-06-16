@@ -6,47 +6,44 @@ import (
 	"log/slog"
 )
 
-type Logger struct{}
-
-func NewLogger() *Logger {
-	return &Logger{}
+type Logger struct {
+	logger *slog.Logger
 }
 
-func (logger *Logger) Print(level slog.Level, args ...interface{}) {
-	slog.LogAttrs(
+func NewLogger(logger *slog.Logger) *Logger {
+	return &Logger{logger: logger}
+}
+
+func (l *Logger) print(level slog.Level, args ...interface{}) {
+	l.logger.LogAttrs(
 		context.Background(),
 		level,
 		fmt.Sprint(args...),
 	)
-
 }
 
 // Debug logs a message at Debug level.
-func (logger *Logger) Debug(args ...interface{}) {
-	logger.Print(slog.LevelDebug, args...)
+func (l *Logger) Debug(args ...interface{}) {
+	l.print(slog.LevelDebug, args...)
 }
 
 // Info logs a message at Info level.
-func (logger *Logger) Info(args ...interface{}) {
-	logger.Print(slog.LevelInfo, args...)
-
+func (l *Logger) Info(args ...interface{}) {
+	l.print(slog.LevelInfo, args...)
 }
 
 // Warn logs a message at Warning level.
-func (logger *Logger) Warn(args ...interface{}) {
-	logger.Print(slog.LevelWarn, args...)
-
+func (l *Logger) Warn(args ...interface{}) {
+	l.print(slog.LevelWarn, args...)
 }
 
 // Error logs a message at Error level.
-func (logger *Logger) Error(args ...interface{}) {
-	logger.Print(slog.LevelError, args...)
-
+func (l *Logger) Error(args ...interface{}) {
+	l.print(slog.LevelError, args...)
 }
 
 // Fatal logs a message at Fatal level
 // and process will exit with status set to 1.
-func (logger *Logger) Fatal(args ...interface{}) {
-	logger.Print(slog.LevelError, args...)
-
+func (l *Logger) Fatal(args ...interface{}) {
+	l.print(slog.LevelError, args...)
 }

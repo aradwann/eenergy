@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package transfer.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/aradwann/eenergy/api/grpc/v1/handlers/transfer";
+
+service TransferService {
+  rpc TransferEnergy(TransferEnergyRequest) returns (TransferEnergyResponse) {}
+}
+
+message TransferEnergyRequest {
+  int64 from_account_id = 1;
+  int64 to_account_id = 2;
+  int64 amount = 3;
+}
+
+message TransferEnergyResponse {
+  Transfer transfer = 1;
+}
+
+message Transfer {
+  int64 id = 1;
+  int64 from_account_id = 2;
+  int64 to_account_id = 3;
+  int64 amount = 4;
+  google.protobuf.Timestamp created_at = 5;
+}

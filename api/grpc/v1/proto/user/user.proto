@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package user.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/aradwann/eenergy/api/grpc/v1/handlers/user";
+
+service UserService {
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {}
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse) {}
+}
+
+message CreateUserRequest {
+  string username = 1;
+  string full_name = 2;
+  string email = 3;
+  string password = 4;
+}
+
+message CreateUserResponse {
+  User user = 1;
+}
+
+message UpdateUserRequest {
+  string username = 1;
+  optional string full_name = 2;
+  optional string email = 3;
+  optional string password = 4;
+}
+
+message UpdateUserResponse {
+  User user = 1;
+}
+
+message User {
+  string username = 1;
+  string full_name = 2;
+  string email = 3;
+  google.protobuf.Timestamp password_changed_at = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
